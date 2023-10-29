@@ -1,5 +1,6 @@
 package frc.robot.utilities;
 
+import frc.robot.StateContainer;
 import frc.robot.subsystems.messaging.MessagingSystem;
 import frc.robot.subsystems.placer.Placer;
 import frc.robot.subsystems.swerve.SwerveDrive;
@@ -8,13 +9,15 @@ import java.util.TimerTask;
 
 import org.littletonrobotics.junction.Logger;
 
+
 public class LogSubsystemInputsTask extends TimerTask {
 	private LogInputs loggingHelper = LogInputs.getInstance();
 	private Loggable[] loggingTargets = {
 		SwerveDrive.getInstance(),
 		Vision.getInstance(),
 		MessagingSystem.getInstance(),
-		Placer.getInstance()
+		Placer.getInstance(),
+		StateContainer.getInstance()
 	};
 
 	@Override
