@@ -6,8 +6,13 @@ import org.littletonrobotics.junction.Logger;
 import com.pathplanner.lib.auto.PIDConstants;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.StateContainer;
 import frc.robot.Constants.PlacerConstants;
+import frc.robot.Constants.EnumConstants.IntakeState;
+import frc.robot.Constants.EnumConstants.PlacerState;
 import frc.robot.Constants.EnumConstants.TalonModel;
 import frc.robot.hardware.SparkMaxMotorController;
 import frc.robot.hardware.TalonMotorController;
@@ -93,5 +98,27 @@ public class Placer extends SubsystemBase implements Loggable{
 
     public double getArmExtension() {
         return extensionMotor.getAngle();
+    }
+
+    public Command setPlacerState(PlacerState placerState) {
+        return Commands.runOnce(
+            () -> {
+                StateContainer state = StateContainer.getInstance();
+                state.targetPlacerState = placerState;
+                setArmExtension(placerState.extension);
+                setArmAngle(placerState.armAngle);
+                setIntakeAngle(placerState.intakeAngle);
+            }
+        );
+    }
+
+    public Command setIntakeState(IntakeState intakeState) {
+        return Commands.runOnce(
+            () -> {
+                StateContainer state = StateContainer.getInstance();
+                setOutput(intakeState == IntakeState.Place ? state.currentGamePiece.outputToPlace : intakeState.output);
+                if (intakeState.newGamePiece != null) state.currentGamePiece = intakeState.newGamePiece;
+            }
+        );
     }
 }

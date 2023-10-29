@@ -1,4 +1,4 @@
-package frc.robot.commands.complexCommands;
+package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.DriveController;
 import frc.robot.Constants.EnumConstants.DriveMode;
 import frc.robot.subsystems.messaging.MessagingSystem;
-import frc.robot.subsystems.swerve.SwerveDrive;
 
 /**
  * A swerve command with support for two swerve control modes:

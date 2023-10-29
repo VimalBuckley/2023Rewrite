@@ -1,14 +1,18 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.JoystickConstants;
-import frc.robot.commands.baseCommands.CancellationCommand;
-import frc.robot.commands.complexCommands.SwerveDriveCommand;
 import frc.robot.subsystems.messaging.MessagingSystem;
 import frc.robot.subsystems.swerve.SwerveDrive;
+import frc.robot.subsystems.swerve.SwerveDriveCommand;
 import frc.robot.subsystems.vision.Vision;
 
 public class DriveController extends CommandXboxController {
@@ -22,7 +26,9 @@ public class DriveController extends CommandXboxController {
 	private DriveController() {
 		super(JoystickConstants.DRIVER_PORT);
 		setButtons();
-		addToShuffleBoard();
+		if (RobotState.isTest()) {
+			addToShuffleBoard();
+		}
 	}
 
 	public static synchronized DriveController getInstance() {
@@ -40,7 +46,7 @@ public class DriveController extends CommandXboxController {
 		slowModeButton.toggleOnTrue(new InstantCommand(() -> swerveCommand.slowSpeed()));
 		slowModeButton.toggleOnFalse(new InstantCommand(() -> swerveCommand.fastSpeed()));
 
-		cancelButton.toggleOnTrue(new CancellationCommand());
+		cancelButton.toggleOnTrue(new InstantCommand(() -> CommandScheduler.getInstance().cancelAll()));
 	}
 
 	private void addToShuffleBoard() {
@@ -48,5 +54,12 @@ public class DriveController extends CommandXboxController {
 		Shuffleboard.getTab("Swerve").add("Swerve", SwerveDrive.getInstance());
 		Shuffleboard.getTab("Vision").add("Vision", Vision.getInstance());
 		Shuffleboard.getTab("Swerve").add("Swerve Command", swerveCommand);
+	}
+
+	public Command rumbleCommand(double timeSeconds) {
+		return Commands.startEnd(
+			() -> getHID().setRumble(RumbleType.kBothRumble, 0.5),
+			() -> getHID().setRumble(RumbleType.kBothRumble, 0)
+		).withTimeout(timeSeconds);
 	}
 }
