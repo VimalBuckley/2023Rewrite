@@ -107,6 +107,13 @@ public class Constants {
 		public static final double WHEEL_DIAMETER = 0.0762; // in meters
 	}
 
+	public static class PlacerConstants {
+		public static final int INTAKE_RUN_MOTOR_ID = 13;
+		public static final int INTAKE_ANGLE_MOTOR_ID = 12;
+		public static final int ARM_ANGLE_MOTOR_ID = 10;
+		public static final int ARM_EXTENSION_MOTOR_ID = 15;
+	}
+
 	public static class VisionConstants {
 		public static int APRIL_TAG_PIPLINE = 0;
 		public static int REFLECTIVE_TAPE_PIPELINE = 0;
