@@ -1,6 +1,5 @@
 package frc.robot.utilities;
 
-import frc.robot.StateContainer;
 import frc.robot.subsystems.messaging.MessagingSystem;
 import frc.robot.subsystems.placer.Placer;
 import frc.robot.subsystems.swerve.SwerveDrive;
@@ -16,8 +15,7 @@ public class LogSubsystemInputsTask extends TimerTask {
 		SwerveDrive.getInstance(),
 		Vision.getInstance(),
 		MessagingSystem.getInstance(),
-		Placer.getInstance(),
-		StateContainer.getInstance()
+		Placer.getInstance()
 	};
 
 	@Override

@@ -5,7 +5,6 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.DriveController;
 import frc.robot.Constants.EnumConstants.DriveMode;
 import frc.robot.subsystems.messaging.MessagingSystem;
 
@@ -44,7 +43,7 @@ public class SwerveDriveCommand extends CommandBase {
 
 	private double targetAngle;
 
-	public SwerveDriveCommand(DriveController xboxController) {
+	public SwerveDriveCommand(CommandXboxController xboxController) {
 		swerve = SwerveDrive.getInstance();
 		controller = xboxController;
 		driveMode = DriveMode.AngleCentric;
