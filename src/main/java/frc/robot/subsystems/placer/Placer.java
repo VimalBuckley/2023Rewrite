@@ -140,8 +140,17 @@ public class Placer extends SubsystemBase implements Loggable{
     public Command runIntakeCommand(IntakeState intakeState) {
         return Commands.runOnce(
             () -> {
-                setOutput(intakeState == IntakeState.Place ? getGamePiece().outputToPlace : intakeState.output);
-                if (intakeState.newGamePiece != null) setGamePiece(intakeState.newGamePiece);
+                if (intakeState == IntakeState.Place) {
+                    setOutput(getGamePiece().outputToPlace);
+                } else {
+                    setOutput(intakeState.output);
+                }
+                if (intakeState == IntakeState.PickupCube && getPlacerState() == PlacerState.Substation) {
+                    setIntakeAngle(getIntakeAngle() -10);
+                }
+                if (intakeState.newGamePiece != null) {
+                    setGamePiece(intakeState.newGamePiece);
+                }
             }
         );
     }
@@ -156,7 +165,7 @@ public class Placer extends SubsystemBase implements Loggable{
     public Command placeCommand() {
         return runIntakeCommand(IntakeState.Place)
             .andThen(Commands.waitSeconds(1))
-            .andThen(zeroPlacerCommand());
+            .andThen(setPlacerCommand(PlacerState.Travel, IntakeState.Off));
     }
 
     public Command placeCommand(PlacerState placerState) {
