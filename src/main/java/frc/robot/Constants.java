@@ -227,6 +227,21 @@ public class Constants {
 			RobotCentric
 		}
 
+		public static enum DriveSens {
+			Fast(4, 4, 3.5),
+			Slow(0.8, 0.8, 0.5);
+
+			public double forwardSens;
+			public double sidewaysSens;
+			public double rotationalSens;
+
+			private DriveSens(double forward, double sideways, double rotational) {
+				forwardSens = forward;
+				sidewaysSens = sideways;
+				rotationalSens = rotational;
+			}
+		}
+
 		public static enum CameraMode {
 			VisionProcessor,
 			DriverCamera,

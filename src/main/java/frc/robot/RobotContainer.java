@@ -8,13 +8,13 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.JoystickConstants;
+import frc.robot.Constants.EnumConstants.DriveSens;
 import frc.robot.Constants.EnumConstants.IntakeState;
 import frc.robot.Constants.EnumConstants.PlacerState;
 import frc.robot.autonomous.Autonomous;
 import frc.robot.subsystems.messaging.MessagingSystem;
 import frc.robot.subsystems.placer.Placer;
 import frc.robot.subsystems.swerve.SwerveDrive;
-import frc.robot.subsystems.swerve.SwerveDriveCommand;
 
 public class RobotContainer {
 	private CommandXboxController xbox;
@@ -26,14 +26,17 @@ public class RobotContainer {
 	private Command autoCommand;
 
 	public RobotContainer() {
-		setupDriveController();
+		placer = Placer.getInstance();
+		swerve = SwerveDrive.getInstance();
 		autonomous = Autonomous.getInstance();
 		messaging = MessagingSystem.getInstance();
+		setupDriveController();
+		setupOperatorController();
 	}
 
 	public void setupDriveController() {
 		xbox = new CommandXboxController(JoystickConstants.DRIVER_PORT);
-		SwerveDriveCommand swerveCommand = new SwerveDriveCommand(xbox);
+		Command swerveCommand = swerve.teleopDriveCommand(xbox);
 		swerve.setDefaultCommand(swerveCommand);
 
 		Trigger switchDriveModeButton = xbox.x();
@@ -41,10 +44,10 @@ public class RobotContainer {
 		Trigger slowModeButton = xbox.leftBumper();
 		Trigger cancelationButton = xbox.start();
 
-		switchDriveModeButton.onTrue(Commands.runOnce(() -> swerveCommand.switchDriveMode()));
-		resetGyroButton.onTrue(Commands.runOnce(() -> swerveCommand.resetGyro(0)));
-		slowModeButton.onTrue(Commands.runOnce(() -> swerveCommand.slowSpeed()));
-		slowModeButton.onFalse(Commands.runOnce(() -> swerveCommand.fastSpeed()));
+		switchDriveModeButton.onTrue(swerve.switchDriveModeCommand());
+		resetGyroButton.onTrue(Commands.runOnce(() -> swerve.resetRobotAngle()));
+		slowModeButton.onTrue(Commands.runOnce(() -> swerve.setDriveSens(DriveSens.Slow)));
+		slowModeButton.onFalse(Commands.runOnce(() -> swerve.setDriveSens(DriveSens.Fast)));
 		cancelationButton.onTrue(Commands.runOnce(() -> CommandScheduler.getInstance().cancelAll()));
 	}
 
