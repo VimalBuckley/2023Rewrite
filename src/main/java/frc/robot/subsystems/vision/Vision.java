@@ -1,8 +1,5 @@
 package frc.robot.subsystems.vision;
 
-import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -11,8 +8,11 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.hardware.Limelight;
 import frc.robot.utilities.Loggable;
+import org.littletonrobotics.junction.LogTable;
+import org.littletonrobotics.junction.Logger;
 
-public class Vision extends SubsystemBase implements Loggable{
+public class Vision extends SubsystemBase implements Loggable {
+
 	private static Vision instance;
 	private Limelight aprilTagLimelight;
 	private Limelight gamePieceLimelight;
@@ -27,9 +27,9 @@ public class Vision extends SubsystemBase implements Loggable{
 	}
 
 	@Override
-	public void logData(Logger logger, LogTable table) {
+	public void logData(LogTable table) {
 		table.put("Tag ID", getTagId());
-		logger.recordOutput("Vision Odometry", getRobotPose());
+		Logger.getInstance().recordOutput("Vision Odometry", getRobotPose());
 	}
 
 	@Override
@@ -88,15 +88,27 @@ public class Vision extends SubsystemBase implements Loggable{
 	public boolean seesGamePieces() {
 		return gamePieceLimelight.hasValidTargets();
 	}
-	
+
 	public void setGamePiecePipeline(int pipeline) {
 		gamePieceLimelight.setPipeline(pipeline);
 	}
 
 	@Override
 	public void initSendable(SendableBuilder builder) {
-		builder.addBooleanProperty("Game Piece Limelight: Valid Targets", () -> seesGamePieces(), null);
-		builder.addDoubleProperty("Game Piece Limelight: Horizontal Offset (Degrees)", () -> Units.radiansToDegrees(getGamePieceHorizontalAngleOffset()), null);
-		builder.addDoubleProperty("Game Piece Limelight: Target Area (%)", () -> getGamePieceTakenArea(), null);
+		builder.addBooleanProperty(
+			"Game Piece Limelight: Valid Targets",
+			() -> seesGamePieces(),
+			null
+		);
+		builder.addDoubleProperty(
+			"Game Piece Limelight: Horizontal Offset (Degrees)",
+			() -> Units.radiansToDegrees(getGamePieceHorizontalAngleOffset()),
+			null
+		);
+		builder.addDoubleProperty(
+			"Game Piece Limelight: Target Area (%)",
+			() -> getGamePieceTakenArea(),
+			null
+		);
 	}
 }
