@@ -23,7 +23,8 @@ public class Vision extends SubsystemBase implements Loggable {
 	}
 
 	public static synchronized Vision getInstance() {
-		return instance == null ? new Vision() : instance;
+		if (instance == null) instance = new Vision();
+		return instance;
 	}
 
 	@Override

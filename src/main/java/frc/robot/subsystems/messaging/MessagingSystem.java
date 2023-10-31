@@ -32,7 +32,8 @@ public class MessagingSystem extends SubsystemBase implements Loggable {
 	}
 
 	public static synchronized MessagingSystem getInstance() {
-		return instance == null ? new MessagingSystem() : instance;
+		if (instance == null) instance = new MessagingSystem();
+        return instance;
 	}
 
 	@Override

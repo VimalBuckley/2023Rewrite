@@ -9,7 +9,8 @@ public class LogInputs implements LoggableInputs {
 	private Loggable target;
 
 	public static synchronized LogInputs getInstance() {
-		return instance == null ? new LogInputs() : instance;
+		if (instance == null) instance = new LogInputs();
+		return instance;
 	}
 
 	public void setLoggingTarget(Loggable target) {

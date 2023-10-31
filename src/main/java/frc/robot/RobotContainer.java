@@ -26,12 +26,12 @@ public class RobotContainer {
 	private Command autoCommand;
 
 	public RobotContainer() {
-		placer = Placer.getInstance();
+		// placer = Placer.getInstance();
 		swerve = SwerveDrive.getInstance();
 		autonomous = Autonomous.getInstance();
 		messaging = MessagingSystem.getInstance();
 		setupDriveController();
-		setupOperatorController();
+		// setupOperatorController();
 	}
 
 	public void setupDriveController() {

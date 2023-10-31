@@ -18,7 +18,8 @@ public class Autonomous {
 	}
 
 	public static synchronized Autonomous getInstance() {
-		return instance == null ? new Autonomous() : instance;
+		if (instance == null) instance = new Autonomous();
+		return instance;
 	}
 
 	public Command getAutonCommand() {

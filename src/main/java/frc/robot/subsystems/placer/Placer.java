@@ -71,7 +71,8 @@ public class Placer extends SubsystemBase implements Loggable {
 	}
 
 	public static synchronized Placer getInstance() {
-		return instance == null ? new Placer() : instance;
+		if (instance == null) instance = new Placer();
+        return instance;
 	}
 
 	@Override
