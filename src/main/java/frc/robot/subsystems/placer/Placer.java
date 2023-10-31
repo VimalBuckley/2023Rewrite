@@ -68,6 +68,8 @@ public class Placer extends SubsystemBase implements Loggable {
 				MotorType.kBrushless
 			);
 		outputMotor.setBrakeOnIdle(false);
+
+		currentGamePiece = GamePiece.Cone;
 	}
 
 	public static synchronized Placer getInstance() {
