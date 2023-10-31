@@ -1,7 +1,6 @@
 package frc.robot.utilities;
 
 import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 public class LogInputs implements LoggableInputs {

@@ -9,6 +9,7 @@ package frc.robot.hardware;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.SPI.Port;
 
@@ -26,32 +27,40 @@ public class NavX {
 		gyroZero = 0;
 	}
 
-	public Rotation2d getAngleAsRotation2d() {
-		return ahrs.getRotation2d();
+	public AHRS getAHRS() {
+		return ahrs;
 	}
 
-	/** Interval: [-infinity, infinity] @return Radians */
-	public double getRawAngle() {
-		return ahrs.getRotation2d().getRadians();
+	public Rotation2d getRotation2d() {
+		return Rotation2d.fromRadians(
+			MathUtil.angleModulus(
+				ahrs.getRotation2d().getRadians()
+			)
+		);
+	}
+
+	/** Interval: [-pi, pi] @return Radians */
+	public double getAngle() {
+		return getYaw();
 	}
 
 	/** Interval: [-pi, pi] @return Radians */
 	public double getOffsetedAngle() {
-		return getWrappedYaw() - getGyroZero();
+		return getAngle() - getGyroZero();
 	}
 
 	/** Interval: [-pi, pi] @return Radians */
-	public double getWrappedYaw() {
+	public double getYaw() {
 		return -Math.toRadians(ahrs.getYaw());
 	}
 
 	/** Interval: [-pi, pi] @return Radians */
-	public double getWrappedPitch() {
+	public double getPitch() {
 		return -Math.toRadians(ahrs.getPitch());
 	}
 
 	/** Interval: [-pi, pi] @return Radians */
-	public double getWrappedRoll() {
+	public double getRoll() {
 		return -Math.toRadians(ahrs.getRoll());
 	}
 
@@ -64,10 +73,10 @@ public class NavX {
 	}
 
 	public void setGyroZero(double newZeroRadians) {
-		gyroZero = newZeroRadians;
+		gyroZero = MathUtil.angleModulus(newZeroRadians);
 	}
 
 	public void offsetGyroZero(double offsetRadians) {
-		gyroZero -= offsetRadians;
+		gyroZero -= MathUtil.angleModulus(offsetRadians);
 	}
 }

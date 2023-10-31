@@ -1,5 +1,6 @@
 package frc.robot.subsystems.swerve;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -77,14 +78,14 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		odometry =
 			new SwerveDriveOdometry(
 				kinematics,
-				gyro.getAngleAsRotation2d(),
+				gyro.getRotation2d(),
 				getModulePositions(),
 				vision.getRobotPose()
 			);
 		poseEstimator =
 			new SwerveDrivePoseEstimator(
 				kinematics,
-				gyro.getAngleAsRotation2d(),
+				gyro.getRotation2d(),
 				getModulePositions(),
 				vision.getRobotPose()
 			);
@@ -96,8 +97,8 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 
 	@Override
 	public void periodic() {
-		odometry.update(gyro.getAngleAsRotation2d(), getModulePositions());
-		poseEstimator.update(gyro.getAngleAsRotation2d(), getModulePositions());
+		odometry.update(gyro.getRotation2d(), getModulePositions());
+		poseEstimator.update(gyro.getRotation2d(), getModulePositions());
 		if (vision.getTagId() != -1) {
 			poseEstimator.addVisionMeasurement(
 				vision.getRobotPose(),
@@ -108,14 +109,28 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 
 	public void driveAngleCentric(
 		double forwardVelocity,
+		double sidewaysVelocity,
+		CommandXboxController controller
+	) {
+		double rotationalVelocity = -controller.getRightX() * sens.rotationalSens;
+		if (Math.abs(controller.getRightY()) > 0.5) {
+			setTargetAngle(90 - Math.signum(controller.getRightY() * 90));
+		} else if (Math.abs(controller.getRightX()) > 0.1) {
+			setTargetAngle(getTargetAngle() + rotationalVelocity);
+		}
+		driveAngleCentric(forwardVelocity, sidewaysVelocity);
+	}
+
+	public void driveAngleCentric(
+		double forwardVelocity,
 		double sidewaysVelocity
 	) {
 		driveFieldCentric(
 			forwardVelocity,
 			sidewaysVelocity,
-			anglePID.atSetpoint()
-				? 0
-				: anglePID.calculate(Math.toRadians(getRobotAngleDegrees()))
+			anglePID.atSetpoint() ?
+				0 :
+				anglePID.calculate(Math.toRadians(getRobotAngleDegrees()))
 		);
 	}
 
@@ -129,7 +144,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 				forwardVelocity,
 				sidewaysVelocity,
 				rotationalVelocity,
-				new Rotation2d(getRobotAngleDegrees())
+				Rotation2d.fromDegrees(getRobotAngleDegrees())
 			)
 		);
 	}
@@ -234,12 +249,12 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 
 	public void resetPose(Pose2d newPose) {
 		odometry.resetPosition(
-			gyro.getAngleAsRotation2d(),
+			gyro.getRotation2d(),
 			getModulePositions(),
 			newPose
 		);
 		poseEstimator.resetPosition(
-			gyro.getAngleAsRotation2d(),
+			gyro.getRotation2d(),
 			getModulePositions(),
 			newPose
 		);
@@ -276,6 +291,10 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		anglePID.setSetpoint(Math.toRadians(angleDegrees));
 	}
 
+	public double getTargetAngle() {
+		return Math.toDegrees(anglePID.getSetpoint());
+	}
+
 	public DriveMode getDriveMode() {
 		return mode;
 	}
@@ -284,30 +303,31 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		mode = newDriveMode;
 	}
 
-	public Command switchDriveModeCommand() {
-		return Commands.runOnce(() ->
-			setDriveMode(
-				getDriveMode() == DriveMode.RobotCentric
-					? DriveMode.AngleCentric
-					: DriveMode.RobotCentric
-			)
+	public Command goRobotCentricCommand() {
+		return Commands.startEnd(
+			() -> setDriveMode(DriveMode.RobotCentric), 
+			() -> setDriveMode(DriveMode.AngleCentric)
 		);
 	}
 
 	public Command teleopDriveCommand(CommandXboxController controller) {
 		return Commands.run(
 			() -> {
-				double fowardVelocity = -controller.getLeftY() * sens.forwardSens;
+				double forwardVelocity = -controller.getLeftY() * sens.forwardSens;
 				double sidewaysVelocity = -controller.getLeftX() * sens.sidewaysSens;
+				double rotationalVelocity = -controller.getRightX() * sens.rotationalSens;
 				switch (mode) {
 					default:
 					case AngleCentric:
-						driveAngleCentric(fowardVelocity, sidewaysVelocity);
+						driveAngleCentric(
+							forwardVelocity,
+							sidewaysVelocity,
+							controller
+						);
 						break;
 					case RobotCentric:
-						double rotationalVelocity = -controller.getRightX() * sens.rotationalSens;
 						driveRobotCentric(
-							fowardVelocity,
+							forwardVelocity,
 							sidewaysVelocity,
 							rotationalVelocity
 						);
@@ -365,12 +385,12 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 	public void initSendable(SendableBuilder builder) {
 		builder.addDoubleProperty(
 			"Gyro Angle: ",
-			() -> gyro.getRawAngle(),
+			() -> Math.toDegrees(gyro.getAngle()),
 			null
 		);
 		builder.addDoubleProperty(
 			"Gyro Offset From Zero: ",
-			() -> getRobotAngleDegrees() % (2 * Math.PI),
+			() -> getRobotAngleDegrees() % 360,
 			null
 		);
 		builder.addDoubleProperty(
@@ -400,7 +420,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		);
 		builder.addDoubleProperty(
 			"Estimated Rotation: ",
-			() -> getEstimatorPose().getRotation().getRadians(),
+			() -> Math.toDegrees(MathUtil.angleModulus(getEstimatorPose().getRotation().getRadians())),
 			null
 		);
 	}

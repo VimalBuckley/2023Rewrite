@@ -4,7 +4,6 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.Loggable;
 import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.Logger;
 
 public class MessagingSystem extends SubsystemBase implements Loggable {
 

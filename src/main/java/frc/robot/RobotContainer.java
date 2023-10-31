@@ -44,10 +44,11 @@ public class RobotContainer {
 		Trigger slowModeButton = xbox.leftBumper();
 		Trigger cancelationButton = xbox.start();
 
-		switchDriveModeButton.onTrue(swerve.switchDriveModeCommand());
+		switchDriveModeButton.toggleOnTrue(swerve.goRobotCentricCommand());
 		resetGyroButton.onTrue(Commands.runOnce(() -> swerve.resetRobotAngle()));
-		slowModeButton.onTrue(Commands.runOnce(() -> swerve.setDriveSens(DriveSens.Slow)));
-		slowModeButton.onFalse(Commands.runOnce(() -> swerve.setDriveSens(DriveSens.Fast)));
+		slowModeButton
+			.onTrue(Commands.runOnce(() -> swerve.setDriveSens(DriveSens.Slow)))
+			.onFalse(Commands.runOnce(() -> swerve.setDriveSens(DriveSens.Fast)));
 		cancelationButton.onTrue(Commands.runOnce(() -> CommandScheduler.getInstance().cancelAll()));
 	}
 
@@ -61,14 +62,17 @@ public class RobotContainer {
 		Trigger middleButton = flightSim.button(7);
 		Trigger groundButton = flightSim.button(9);
 
-		placeButton.onTrue(placer.runIntakeCommand(IntakeState.Place));
-		placeButton.onFalse(placer.setPlacerCommand(PlacerState.Travel, IntakeState.Off));
+		placeButton
+			.onTrue(placer.runIntakeCommand(IntakeState.Place))
+			.onFalse(placer.setPlacerCommand(PlacerState.Travel, IntakeState.Off));
 
-		cubeButton.onTrue(placer.runIntakeCommand(IntakeState.PickupCube));
-		cubeButton.onFalse(placer.setPlacerCommand(PlacerState.Travel, IntakeState.Off));
+		cubeButton
+			.onTrue(placer.runIntakeCommand(IntakeState.PickupCube))
+			.onFalse(placer.setPlacerCommand(PlacerState.Travel, IntakeState.Off));
 
-		coneButton.onTrue(placer.runIntakeCommand(IntakeState.PickupCone));
-		coneButton.onFalse(placer.setPlacerCommand(PlacerState.Travel, IntakeState.Off));
+		coneButton
+			.onTrue(placer.runIntakeCommand(IntakeState.PickupCone))
+			.onFalse(placer.setPlacerCommand(PlacerState.Travel, IntakeState.Off));
 
 		substationButton.onTrue(placer.setPlacerCommand(PlacerState.Substation));
 		topButton.onTrue(placer.setPlacerCommand(PlacerState.Top));

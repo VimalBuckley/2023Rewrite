@@ -2,6 +2,8 @@ package frc.robot.subsystems.placer;
 
 import com.pathplanner.lib.auto.PIDConstants;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -16,7 +18,6 @@ import frc.robot.hardware.TalonMotorController;
 import frc.robot.hardware.interfaces.EncodedMotorController;
 import frc.robot.utilities.Loggable;
 import org.littletonrobotics.junction.LogTable;
-import org.littletonrobotics.junction.Logger;
 
 public class Placer extends SubsystemBase implements Loggable {
 
@@ -56,7 +57,7 @@ public class Placer extends SubsystemBase implements Loggable {
 				MotorType.kBrushless
 			);
 		intakeAngleMotor.setBrakeOnIdle(true);
-		intakeAngleMotor.setMinAngle(-80 * Math.PI);
+		intakeAngleMotor.setMinAngle(Units.rotationsToRadians(-40));
 		intakeAngleMotor.setPID(new PIDConstants(1, 0, 0));
 		intakeAngleMotor.setMinOutput(-0.3);
 		intakeAngleMotor.setMaxOutput(0.3);
