@@ -22,7 +22,7 @@ import frc.robot.Constants.EnumConstants.DriveMode;
  * When pushing the joystick foward, the robot moves in whatever direction it is facing.
  * For our purposes, the front of the robot is the intake side.
  */
-public class SwerveDriveCommand extends CommandBase {
+public class TeleopDriveCommand extends CommandBase {
 	private SwerveDrive swerve;
 	private CommandXboxController controller;
 	private DriveMode driveMode;
@@ -40,7 +40,7 @@ public class SwerveDriveCommand extends CommandBase {
 	private double forwardVelocity;
 	private double rotationalVelocity;
 
-	public SwerveDriveCommand(CommandXboxController xboxController) {
+	public TeleopDriveCommand(CommandXboxController xboxController) {
 		swerve = SwerveDrive.getInstance();
 		controller = xboxController;
 		addRequirements(swerve);

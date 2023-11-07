@@ -15,7 +15,7 @@ import frc.robot.autonomous.Autonomous;
 import frc.robot.subsystems.messaging.MessagingSystem;
 import frc.robot.subsystems.placer.Placer;
 import frc.robot.subsystems.swerve.SwerveDrive;
-import frc.robot.subsystems.swerve.SwerveDriveCommand;
+import frc.robot.subsystems.swerve.TeleopDriveCommand;
 
 public class RobotContainer {
 	private CommandXboxController xbox;
@@ -37,7 +37,7 @@ public class RobotContainer {
 
 	public void setupDriveController() {
 		xbox = new CommandXboxController(JoystickConstants.DRIVER_PORT);
-		SwerveDriveCommand swerveCommand = new SwerveDriveCommand(xbox);
+		TeleopDriveCommand swerveCommand = new TeleopDriveCommand(xbox);
 		swerve.setDefaultCommand(swerveCommand);
 
 		Trigger switchDriveModeButton = xbox.x();
