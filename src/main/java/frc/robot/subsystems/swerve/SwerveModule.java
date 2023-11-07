@@ -9,13 +9,13 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.EnumConstants.TalonModel;
+import frc.robot.hardware.EncodedMotorController;
 import frc.robot.hardware.SparkMaxMotorController;
 import frc.robot.hardware.TalonMotorController;
-import frc.robot.hardware.interfaces.SwerveMotorController;
 
 public class SwerveModule {
-	private SwerveMotorController driveMotor;
-	private SwerveMotorController angleMotor;
+	private EncodedMotorController driveMotor;
+	private EncodedMotorController angleMotor;
 	private Translation2d translationFromCenter;
 
 	public SwerveModule(
@@ -26,13 +26,19 @@ public class SwerveModule {
 		driveMotor = driveConfig.isNeo ? 
 			new SparkMaxMotorController(driveConfig.canId, MotorType.kBrushless) :
 			new TalonMotorController(driveConfig.canId, TalonModel.TalonFX);
-
 		angleMotor = angleConfig.isNeo ? 
 			new SparkMaxMotorController(angleConfig.canId, MotorType.kBrushless) :
 			new TalonMotorController(angleConfig.canId, TalonModel.TalonFX);
 
-		driveMotor.configureForSwerve(driveConfig);
-		angleMotor.configureForSwerve(angleConfig);
+		driveMotor
+			.setInversion(driveConfig.invert)
+			.configureCurrentLimit(driveConfig.currentLimit)
+			.setPID(driveConfig.pid);
+		angleMotor
+			.setInversion(angleConfig.invert)
+			.configureCurrentLimit(angleConfig.currentLimit)
+			.setPID(angleConfig.pid);
+		
 		this.translationFromCenter = translationToCenter;
 	}
 

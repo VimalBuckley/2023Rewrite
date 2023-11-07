@@ -1,4 +1,4 @@
-package frc.robot.hardware.interfaces;
+package frc.robot.hardware;
 
 import com.pathplanner.lib.auto.PIDConstants;
 
@@ -21,24 +21,27 @@ public interface EncodedMotorController {
 	/** Units are percent */
 	public double getOutput();
 
-	public void setPID(PIDConstants pid);
+	/** Units are amps */
+	public EncodedMotorController configureCurrentLimit(int currentLimit);
+
+	public EncodedMotorController setPID(PIDConstants pid);
 
 	/** Units are radians */
-	public void setMinAngle(double minAngle);
+	public EncodedMotorController setMinAngle(double minAngle);
 
 	/** Units are radians */
-	public void setMaxAngle(double maxAngle);
+	public EncodedMotorController setMaxAngle(double maxAngle);
 
 	/** Units are percent */
-	public void setMinOutput(double minOutput);
+	public EncodedMotorController setMinOutput(double minOutput);
 
 	/** Units are percent */
-	public void setMaxOutput(double maxOutput);
+	public EncodedMotorController setMaxOutput(double maxOutput);
 
-	public void setInverted(boolean shouldInvert);
+	public EncodedMotorController setInversion(boolean shouldInvert);
 
-	public void setBrakeOnIdle(boolean shouldBreak);
+	public EncodedMotorController setBrakeOnIdle(boolean shouldBreak);
 
 	/** Units are radians */
-	public void setAngleTolerance(double tolerance);
+	public EncodedMotorController setAngleTolerance(double tolerance);
 }

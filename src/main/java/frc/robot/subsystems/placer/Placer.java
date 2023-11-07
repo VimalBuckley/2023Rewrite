@@ -13,14 +13,13 @@ import frc.robot.Constants.EnumConstants.IntakeState;
 import frc.robot.Constants.EnumConstants.PlacerState;
 import frc.robot.Constants.EnumConstants.TalonModel;
 import frc.robot.Constants.PlacerConstants;
+import frc.robot.hardware.EncodedMotorController;
 import frc.robot.hardware.SparkMaxMotorController;
 import frc.robot.hardware.TalonMotorController;
-import frc.robot.hardware.interfaces.EncodedMotorController;
 import frc.robot.utilities.Loggable;
 import org.littletonrobotics.junction.LogTable;
 
 public class Placer extends SubsystemBase implements Loggable {
-
 	private static Placer instance;
 	private EncodedMotorController outputMotor;
 	private EncodedMotorController intakeAngleMotor;
@@ -30,43 +29,39 @@ public class Placer extends SubsystemBase implements Loggable {
 	private PlacerState targetPlacerState;
 
 	private Placer() {
-		extensionMotor =
-			new TalonMotorController(
-				PlacerConstants.ARM_EXTENSION_MOTOR_ID,
-				TalonModel.TalonSRX
-			);
-		extensionMotor.setPID(new PIDConstants(0.4, 0, 0));
-		extensionMotor.setMinOutput(-0.3);
-		extensionMotor.setMaxOutput(0.6);
-		extensionMotor.setAngleTolerance(400);
-		extensionMotor.setMaxAngle(15.3398);
+		extensionMotor = new TalonMotorController(
+			PlacerConstants.ARM_EXTENSION_MOTOR_ID,
+			TalonModel.TalonSRX
+		);
+		extensionMotor.setPID(new PIDConstants(0.4, 0, 0))
+		.setMinOutput(-0.3)
+		.setMaxOutput(0.6)
+		.setAngleTolerance(400)
+		.setMaxAngle(15.3398);
 
-		armAngleMotor =
-			new SparkMaxMotorController(
-				PlacerConstants.ARM_ANGLE_MOTOR_ID,
-				MotorType.kBrushless
-			);
-		armAngleMotor.setInverted(true);
-		armAngleMotor.setPID(new PIDConstants(0.04, 0, 0));
-		armAngleMotor.setMinOutput(-0.5);
-		armAngleMotor.setMaxOutput(0.75);
+		armAngleMotor = new SparkMaxMotorController(
+			PlacerConstants.ARM_ANGLE_MOTOR_ID,
+			MotorType.kBrushless
+		);
+		armAngleMotor.setInversion(true)
+		.setPID(new PIDConstants(0.04, 0, 0))
+		.setMinOutput(-0.5)
+		.setMaxOutput(0.75);
 
-		intakeAngleMotor =
-			new SparkMaxMotorController(
-				PlacerConstants.INTAKE_ANGLE_MOTOR_ID,
-				MotorType.kBrushless
-			);
-		intakeAngleMotor.setBrakeOnIdle(true);
-		intakeAngleMotor.setMinAngle(Units.rotationsToRadians(-40));
-		intakeAngleMotor.setPID(new PIDConstants(1, 0, 0));
-		intakeAngleMotor.setMinOutput(-0.3);
-		intakeAngleMotor.setMaxOutput(0.3);
+		intakeAngleMotor = new SparkMaxMotorController(
+			PlacerConstants.INTAKE_ANGLE_MOTOR_ID,
+			MotorType.kBrushless
+		);
+		intakeAngleMotor.setBrakeOnIdle(true)
+		.setMinAngle(Units.rotationsToRadians(-40))
+		.setPID(new PIDConstants(1, 0, 0))
+		.setMinOutput(-0.3)
+		.setMaxOutput(0.3);
 
-		outputMotor =
-			new SparkMaxMotorController(
-				PlacerConstants.INTAKE_RUN_MOTOR_ID,
-				MotorType.kBrushless
-			);
+		outputMotor = new SparkMaxMotorController(
+			PlacerConstants.INTAKE_RUN_MOTOR_ID,
+			MotorType.kBrushless
+		);
 		outputMotor.setBrakeOnIdle(false);
 
 		currentGamePiece = GamePiece.Cone;
