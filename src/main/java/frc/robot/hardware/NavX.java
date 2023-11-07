@@ -31,12 +31,16 @@ public class NavX {
 		return ahrs;
 	}
 
-	public Rotation2d getRotation2d() {
+	public Rotation2d getWrappedRotation2d() {
 		return Rotation2d.fromRadians(
 			MathUtil.angleModulus(
 				ahrs.getRotation2d().getRadians()
 			)
 		);
+	}
+
+	public Rotation2d getRotation2d() {
+		return ahrs.getRotation2d();
 	}
 
 	/** Interval: [-pi, pi] @return Radians */

@@ -15,15 +15,9 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.Constants.EnumConstants.DriveMode;
-import frc.robot.Constants.EnumConstants.DriveSens;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.hardware.NavX;
-import frc.robot.subsystems.messaging.MessagingSystem;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.utilities.Loggable;
 import org.littletonrobotics.junction.LogTable;
@@ -38,57 +32,50 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 	private SwerveDriveKinematics kinematics;
 	private SwerveDriveOdometry odometry;
 	private SwerveDrivePoseEstimator poseEstimator;
-	private DriveMode mode;
 	private PIDController anglePID;
-	private DriveSens sens;
 
 	private SwerveDrive() {
 		anglePID = new PIDController(4, 0, 0);
 		anglePID.enableContinuousInput(-Math.PI, Math.PI);
 		anglePID.setTolerance(Math.PI / 32, Math.PI / 32);
 		anglePID.setSetpoint(0);
-		mode = DriveMode.AngleCentric;
-		sens = DriveSens.Fast;
-		modules =
-			new SwerveModule[] {
-				new SwerveModule(
-					SwerveConstants.FRONT_LEFT_DRIVE_CONFIG,
-					SwerveConstants.FRONT_LEFT_ANGLE_CONFIG,
-					SwerveConstants.FRONT_LEFT_MODULE_TRANSLATION
-				),
-				new SwerveModule(
-					SwerveConstants.FRONT_RIGHT_DRIVE_CONFIG,
-					SwerveConstants.FRONT_RIGHT_ANGLE_CONFIG,
-					SwerveConstants.FRONT_RIGHT_MODULE_TRANSLATION
-				),
-				new SwerveModule(
-					SwerveConstants.BACK_LEFT_DRIVE_CONFIG,
-					SwerveConstants.BACK_LEFT_ANGLE_CONFIG,
-					SwerveConstants.BACK_LEFT_MODULE_TRANSLATION
-				),
-				new SwerveModule(
-					SwerveConstants.BACK_RIGHT_DRIVE_CONFIG,
-					SwerveConstants.BACK_RIGHT_ANGLE_CONFIG,
-					SwerveConstants.BACK_RIGHT_MODULE_TRANSLATION
-				),
-			};
+		modules = new SwerveModule[] {
+			new SwerveModule(
+				SwerveConstants.FRONT_LEFT_DRIVE_CONFIG,
+				SwerveConstants.FRONT_LEFT_ANGLE_CONFIG,
+				SwerveConstants.FRONT_LEFT_MODULE_TRANSLATION
+			),
+			new SwerveModule(
+				SwerveConstants.FRONT_RIGHT_DRIVE_CONFIG,
+				SwerveConstants.FRONT_RIGHT_ANGLE_CONFIG,
+				SwerveConstants.FRONT_RIGHT_MODULE_TRANSLATION
+			),
+			new SwerveModule(
+				SwerveConstants.BACK_LEFT_DRIVE_CONFIG,
+				SwerveConstants.BACK_LEFT_ANGLE_CONFIG,
+				SwerveConstants.BACK_LEFT_MODULE_TRANSLATION
+			),
+			new SwerveModule(
+				SwerveConstants.BACK_RIGHT_DRIVE_CONFIG,
+				SwerveConstants.BACK_RIGHT_ANGLE_CONFIG,
+				SwerveConstants.BACK_RIGHT_MODULE_TRANSLATION
+			),
+		};
 		gyro = new NavX(I2C.Port.kMXP);
 		vision = Vision.getInstance();
 		kinematics = new SwerveDriveKinematics(getModuleTranslations());
-		odometry =
-			new SwerveDriveOdometry(
-				kinematics,
-				gyro.getRotation2d(),
-				getModulePositions(),
-				vision.getRobotPose()
-			);
-		poseEstimator =
-			new SwerveDrivePoseEstimator(
-				kinematics,
-				gyro.getRotation2d(),
-				getModulePositions(),
-				vision.getRobotPose()
-			);
+		odometry = new SwerveDriveOdometry(
+			kinematics,
+			gyro.getRotation2d(),
+			getModulePositions(),
+			vision.getRobotPose()
+		);
+		poseEstimator = new SwerveDrivePoseEstimator(
+			kinematics,
+			gyro.getRotation2d(),
+			getModulePositions(),
+			vision.getRobotPose()
+		);
 	}
 
 	public static synchronized SwerveDrive getInstance() {
@@ -111,27 +98,19 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 	public void driveAngleCentric(
 		double forwardVelocity,
 		double sidewaysVelocity,
-		CommandXboxController controller
+		Rotation2d targetRotation
 	) {
-		double rotationalVelocity = -controller.getRightX() * sens.rotationalSens;
-		if (Math.abs(controller.getRightY()) > 0.5) {
-			setTargetAngle(90 - Math.signum(controller.getRightY() * 90));
-		} else if (Math.abs(controller.getRightX()) > 0.1) {
-			setTargetAngle(getTargetAngle() + rotationalVelocity);
+		double rotationalVelocity = anglePID.calculate(
+			getRobotAngle().getRadians(), 
+			targetRotation.getRadians()
+		);
+		if (anglePID.atSetpoint()) {
+			rotationalVelocity = 0;
 		}
-		driveAngleCentric(forwardVelocity, sidewaysVelocity);
-	}
-
-	public void driveAngleCentric(
-		double forwardVelocity,
-		double sidewaysVelocity
-	) {
 		driveFieldCentric(
-			forwardVelocity,
-			sidewaysVelocity,
-			anglePID.atSetpoint() ?
-				0 :
-				anglePID.calculate(Math.toRadians(getRobotAngleDegrees()))
+			forwardVelocity, 
+			sidewaysVelocity, 
+			rotationalVelocity
 		);
 	}
 
@@ -145,7 +124,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 				forwardVelocity,
 				sidewaysVelocity,
 				rotationalVelocity,
-				Rotation2d.fromDegrees(getRobotAngleDegrees())
+				getRobotAngle()
 			)
 		);
 	}
@@ -201,10 +180,6 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		);
 	}
 
-	public NavX getGyro() {
-		return gyro;
-	}
-
 	public void zeroModules() {
 		for (SwerveModule module : modules) {
 			module.setModuleVelocity(0);
@@ -212,7 +187,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		}
 	}
 
-	public Translation2d[] getModuleTranslations() {
+	private Translation2d[] getModuleTranslations() {
 		Translation2d[] translations = new Translation2d[modules.length];
 		for (int i = 0; i < modules.length; i++) {
 			translations[i] = modules[i].getTranslationFromCenter();
@@ -220,7 +195,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		return translations;
 	}
 
-	public SwerveModuleState[] getModuleStates() {
+	private SwerveModuleState[] getModuleStates() {
 		SwerveModuleState[] states = new SwerveModuleState[modules.length];
 		for (int i = 0; i < modules.length; i++) {
 			states[i] = modules[i].getModuleState();
@@ -228,7 +203,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		return states;
 	}
 
-	public SwerveModulePosition[] getModulePositions() {
+	private SwerveModulePosition[] getModulePositions() {
 		SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
 		for (int i = 0; i < modules.length; i++) {
 			positions[i] = modules[i].getModulePosition();
@@ -261,81 +236,12 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		);
 	}
 
-	public double getRobotAngleDegrees() {
-		return Math.toDegrees(gyro.getOffsetedAngle());
+	public Rotation2d getRobotAngle() {
+		return Rotation2d.fromRadians(gyro.getOffsetedAngle());
 	}
 
-	/**
-	 * Sets the field-centric zero to some angle relative to the robot
-	 * <p>CCW is positive
-	 * @param offsetRadians the angle relative to the robot, in radians
-	 */
-	public void resetRobotAngle(double offsetRadians) {
-		gyro.offsetGyroZero(offsetRadians);
-		setTargetAngle(Math.toDegrees(offsetRadians));
-		MessagingSystem.getInstance().addMessage("Swerve -> Reset Gyro");
-	}
-
-	public void resetRobotAngle() {
-		resetRobotAngle(0);
-	}
-
-	public double getCurrentZero() {
-		return gyro.getGyroZero();
-	}
-
-	public void setDriveSens(DriveSens newSens) {
-		sens = newSens;
-	}
-
-	public void setTargetAngle(double angleDegrees) {
-		anglePID.setSetpoint(Math.toRadians(angleDegrees));
-	}
-
-	public double getTargetAngle() {
-		return Math.toDegrees(anglePID.getSetpoint());
-	}
-
-	public DriveMode getDriveMode() {
-		return mode;
-	}
-
-	public void setDriveMode(DriveMode newDriveMode) {
-		mode = newDriveMode;
-	}
-
-	public Command goRobotCentricCommand() {
-		return Commands.startEnd(
-			() -> setDriveMode(DriveMode.RobotCentric), 
-			() -> setDriveMode(DriveMode.AngleCentric)
-		);
-	}
-
-	public Command teleopDriveCommand(CommandXboxController controller) {
-		return Commands.run(
-			() -> {
-				double forwardVelocity = -controller.getLeftY() * sens.forwardSens;
-				double sidewaysVelocity = -controller.getLeftX() * sens.sidewaysSens;
-				double rotationalVelocity = -controller.getRightX() * sens.rotationalSens;
-				switch (mode) {
-					default:
-					case AngleCentric:
-						driveAngleCentric(
-							forwardVelocity,
-							sidewaysVelocity,
-							controller
-						);
-						break;
-					case RobotCentric:
-						driveRobotCentric(
-							forwardVelocity,
-							sidewaysVelocity,
-							rotationalVelocity
-						);
-				}
-			},
-			this
-		);
+	public void resetRobotAngle(Rotation2d offsetAngle) {
+		gyro.offsetGyroZero(offsetAngle.getRadians());
 	}
 
 	@Override
@@ -391,7 +297,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		);
 		builder.addDoubleProperty(
 			"Gyro Offset From Zero: ",
-			() -> getRobotAngleDegrees() % 360,
+			() -> Math.toDegrees(MathUtil.angleModulus(getRobotAngle().getRadians())),
 			null
 		);
 		builder.addDoubleProperty(

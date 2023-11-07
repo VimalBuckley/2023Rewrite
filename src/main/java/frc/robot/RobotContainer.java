@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -8,13 +9,13 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.JoystickConstants;
-import frc.robot.Constants.EnumConstants.DriveSens;
 import frc.robot.Constants.EnumConstants.IntakeState;
 import frc.robot.Constants.EnumConstants.PlacerState;
 import frc.robot.autonomous.Autonomous;
 import frc.robot.subsystems.messaging.MessagingSystem;
 import frc.robot.subsystems.placer.Placer;
 import frc.robot.subsystems.swerve.SwerveDrive;
+import frc.robot.subsystems.swerve.SwerveDriveCommand;
 
 public class RobotContainer {
 	private CommandXboxController xbox;
@@ -36,7 +37,7 @@ public class RobotContainer {
 
 	public void setupDriveController() {
 		xbox = new CommandXboxController(JoystickConstants.DRIVER_PORT);
-		Command swerveCommand = swerve.teleopDriveCommand(xbox);
+		SwerveDriveCommand swerveCommand = new SwerveDriveCommand(xbox);
 		swerve.setDefaultCommand(swerveCommand);
 
 		Trigger switchDriveModeButton = xbox.x();
@@ -44,11 +45,9 @@ public class RobotContainer {
 		Trigger slowModeButton = xbox.leftBumper();
 		Trigger cancelationButton = xbox.start();
 
-		switchDriveModeButton.toggleOnTrue(swerve.goRobotCentricCommand());
-		resetGyroButton.onTrue(Commands.runOnce(() -> swerve.resetRobotAngle()));
-		slowModeButton
-			.onTrue(Commands.runOnce(() -> swerve.setDriveSens(DriveSens.Slow)))
-			.onFalse(Commands.runOnce(() -> swerve.setDriveSens(DriveSens.Fast)));
+		switchDriveModeButton.toggleOnTrue(swerveCommand.toggleRobotCentricCommand());
+		resetGyroButton.onTrue(swerveCommand.resetGyroCommand(new Rotation2d()));
+		slowModeButton.toggleOnTrue(swerveCommand.toggleSlowModeCommand());
 		cancelationButton.onTrue(Commands.runOnce(() -> CommandScheduler.getInstance().cancelAll()));
 	}
 
