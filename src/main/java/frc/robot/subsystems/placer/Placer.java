@@ -44,19 +44,19 @@ public class Placer extends SubsystemBase implements Loggable {
 			MotorType.kBrushless
 		);
 		armAngleMotor.setInversion(true)
-		.setPID(new PIDConstants(0.04, 0, 0))
-		.setMinOutput(-0.5)
-		.setMaxOutput(0.75);
+			.setPID(new PIDConstants(0.04, 0, 0))
+			.setMinOutput(-0.5)
+			.setMaxOutput(0.75);
 
 		intakeAngleMotor = new SparkMaxMotorController(
 			PlacerConstants.INTAKE_ANGLE_MOTOR_ID,
 			MotorType.kBrushless
 		);
 		intakeAngleMotor.setBrakeOnIdle(true)
-		.setMinAngle(Units.rotationsToRadians(-40))
-		.setPID(new PIDConstants(1, 0, 0))
-		.setMinOutput(-0.3)
-		.setMaxOutput(0.3);
+			.setMinAngle(Units.rotationsToRadians(-40))
+			.setPID(new PIDConstants(1, 0, 0))
+			.setMinOutput(-0.3)
+			.setMaxOutput(0.3);
 
 		outputMotor = new SparkMaxMotorController(
 			PlacerConstants.INTAKE_RUN_MOTOR_ID,

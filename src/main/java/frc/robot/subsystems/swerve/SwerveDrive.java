@@ -1,6 +1,5 @@
 package frc.robot.subsystems.swerve;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,7 +11,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -24,7 +22,6 @@ import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveDrive extends SubsystemBase implements Loggable {
-
 	private static SwerveDrive instance;
 	private NavX gyro;
 	private Vision vision;
@@ -87,7 +84,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 	public void periodic() {
 		odometry.update(gyro.getRotation2d(), getModulePositions());
 		poseEstimator.update(gyro.getRotation2d(), getModulePositions());
-		if (vision.getTagId() != -1) {
+		if (vision.seesTags()) {
 			poseEstimator.addVisionMeasurement(
 				vision.getRobotPose(),
 				Timer.getFPGATimestamp()
@@ -107,19 +104,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		if (anglePID.atSetpoint()) {
 			rotationalVelocity = 0;
 		}
-		driveFieldCentric(
-			forwardVelocity, 
-			sidewaysVelocity, 
-			rotationalVelocity
-		);
-	}
-
-	public void driveFieldCentric(
-		double forwardVelocity,
-		double sidewaysVelocity,
-		double rotationalVelocity
-	) {
-		driveModules(
+		driveRobotCentric(
 			ChassisSpeeds.fromFieldRelativeSpeeds(
 				forwardVelocity,
 				sidewaysVelocity,
@@ -129,21 +114,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		);
 	}
 
-	public void driveRobotCentric(
-		double forwardVelocity,
-		double sidewaysVelocity,
-		double rotationalVelocity
-	) {
-		driveModules(
-			new ChassisSpeeds(
-				forwardVelocity,
-				sidewaysVelocity,
-				rotationalVelocity
-			)
-		);
-	}
-
-	public void driveModules(ChassisSpeeds targetChassisSpeeds) {
+	public void driveRobotCentric(ChassisSpeeds targetChassisSpeeds) {
 		SwerveModuleState[] states = kinematics.toSwerveModuleStates(
 			discretize(targetChassisSpeeds)
 		);
@@ -160,7 +131,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 	 * Fixes situation where robot drifts in the direction it's rotating in if turning and translating at the same time
 	 * @see https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964
 	 */
-	private static ChassisSpeeds discretize(
+	private ChassisSpeeds discretize(
 		ChassisSpeeds originalChassisSpeeds
 	) {
 		double vx = originalChassisSpeeds.vxMetersPerSecond;
@@ -178,13 +149,6 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 			twist.dy / dt,
 			twist.dtheta / dt
 		);
-	}
-
-	public void zeroModules() {
-		for (SwerveModule module : modules) {
-			module.setModuleVelocity(0);
-			module.setModuleAngle(0);
-		}
 	}
 
 	private Translation2d[] getModuleTranslations() {
@@ -286,49 +250,5 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 	@Override
 	public String getTableName() {
 		return "Swerve";
-	}
-
-	@Override
-	public void initSendable(SendableBuilder builder) {
-		builder.addDoubleProperty(
-			"Gyro Angle: ",
-			() -> Math.toDegrees(gyro.getAngle()),
-			null
-		);
-		builder.addDoubleProperty(
-			"Gyro Offset From Zero: ",
-			() -> Math.toDegrees(MathUtil.angleModulus(getRobotAngle().getRadians())),
-			null
-		);
-		builder.addDoubleProperty(
-			"Current Forward Speed: ",
-			() -> getChassisSpeeds().vxMetersPerSecond,
-			null
-		);
-		builder.addDoubleProperty(
-			"Current Sideways Speed: ",
-			() -> getChassisSpeeds().vyMetersPerSecond,
-			null
-		);
-		builder.addDoubleProperty(
-			"Current Rotational Speed: ",
-			() -> getChassisSpeeds().omegaRadiansPerSecond,
-			null
-		);
-		builder.addDoubleProperty(
-			"Estimated X: ",
-			() -> getEstimatorPose().getX(),
-			null
-		);
-		builder.addDoubleProperty(
-			"Estimated Y: ",
-			() -> getEstimatorPose().getY(),
-			null
-		);
-		builder.addDoubleProperty(
-			"Estimated Rotation: ",
-			() -> Math.toDegrees(MathUtil.angleModulus(getEstimatorPose().getRotation().getRadians())),
-			null
-		);
 	}
 }

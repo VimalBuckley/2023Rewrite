@@ -46,6 +46,10 @@ public class Vision extends SubsystemBase implements Loggable {
 		return gamePieceLimelight;
 	}
 
+	public boolean seesTags() {
+		return getTagId() != -1;
+	}
+
 	/** Defaults to -1 */
 	public int getTagId() {
 		return aprilTagLimelight.getTargetTagId();
