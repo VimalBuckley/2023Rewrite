@@ -4,6 +4,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -55,6 +56,8 @@ public class TeleopDriveCommand extends CommandBase {
         ySens = 4;
         zSens = 3.5;
         doSlew = true;
+		Shuffleboard.getTab("Display").addString("Drive Mode", () -> driveMode.name());
+		Shuffleboard.getTab("Display").addDouble("Target Angle Degrees ", () -> targetAngle.getDegrees());
     }
 
 	@Override
@@ -120,9 +123,20 @@ public class TeleopDriveCommand extends CommandBase {
     public Command toggleRobotCentricCommand() {
         return Commands.startEnd(
             () -> driveMode = DriveMode.RobotCentric,
-            () -> driveMode = DriveMode.AngleCentric
+            () -> {
+				driveMode = DriveMode.AngleCentric;
+				Rotation2d zeroRotation = new Rotation2d();
+				targetAngle = zeroRotation;
+				swerve.resetRobotAngle(zeroRotation);
+			}
         );
     }
+
+	public Command setTargetAngleCommand(Rotation2d newTarget) {
+		return Commands.runOnce(
+			() -> targetAngle = newTarget
+		);
+	}
 
     public Command resetGyroCommand(Rotation2d offsetAngle) {
         return Commands.runOnce(

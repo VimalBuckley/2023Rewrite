@@ -13,6 +13,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.hardware.NavX;
@@ -73,6 +74,9 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 			getModulePositions(),
 			vision.getRobotPose()
 		);
+		Shuffleboard.getTab("Display").addDouble("Gyro Angle Degrees", () -> gyro.getRotation2d().getDegrees());
+		Shuffleboard.getTab("Display").addDouble("Gyro Offseted Angle", () -> gyro.getOffsetedAngle());
+		Shuffleboard.getTab("Display").addDouble("Gyro Zero", () -> gyro.getGyroZero());
 	}
 
 	public static synchronized SwerveDrive getInstance() {

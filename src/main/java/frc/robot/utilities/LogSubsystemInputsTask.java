@@ -14,8 +14,8 @@ public class LogSubsystemInputsTask extends TimerTask {
 	private Loggable[] loggingTargets = {
 		SwerveDrive.getInstance(),
 		Vision.getInstance(),
-		MessagingSystem.getInstance(),
-		Placer.getInstance()
+		MessagingSystem.getInstance()
+		// Placer.getInstance()
 	};
 
 	@Override
