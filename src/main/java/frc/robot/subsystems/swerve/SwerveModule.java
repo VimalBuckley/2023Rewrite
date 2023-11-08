@@ -97,23 +97,9 @@ public class SwerveModule {
 
 	/**
 	 * Minimize the change in heading the desired swerve module state would require
-	 * by potentially
-	 * reversing the direction the wheel spins. Customized from WPILib's version to
-	 * include placing
-	 * in appropriate scope for CTRE onboard control.
-	 * <p>
-	 * The WPI optimize function assumes that the pid controller is continuous,
-	 * which
-	 * means that if you are at 359 degrees and set a target of 1 degree, it assumes
-	 * the controller will be able to tell the module to move 2 degrees forwards and
-	 * not 358 degrees backwards (which is how the wpilib pid controller functions).
-	 * <p>
-	 * However CTRE onboard pid controllers are not continuous, if it’s at a
-	 * setpoint at 359 and you tell it to go 1, it will rotate 358 degrees backwards
-	 * instead of 2 degrees forwards. If you want it to go to 1 you actually need to
-	 * tell it to go to 361 degrees. To do this you need the custom optimize
-	 * function defined here.
-	 * <p>
+	 * by potentially reversing the direction the wheel spins. Customized from
+	 * WPILib's version to include placing in appropriate scope for CTRE onboard
+	 * control.
 	 * 
 	 * @see <a
 	 *      href=https://www.chiefdelphi.com/t/swerve-modules-flip-180-degrees-periodically-conditionally/393059/3
