@@ -75,8 +75,9 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 			vision.getRobotPose()
 		);
 		Shuffleboard.getTab("Display").addDouble("Gyro Angle Degrees", () -> gyro.getRotation2d().getDegrees());
-		Shuffleboard.getTab("Display").addDouble("Gyro Offseted Angle", () -> gyro.getOffsetedAngle());
-		Shuffleboard.getTab("Display").addDouble("Gyro Zero", () -> gyro.getGyroZero());
+		Shuffleboard.getTab("Display").addDouble("Gyro Offseted Angle", () -> Math.toDegrees(gyro.getOffsetedAngle()));
+		Shuffleboard.getTab("Display").addDouble("Gyro Zero", () -> Math.toDegrees(gyro.getGyroZero()));
+		Shuffleboard.getTab("Display").addDouble("Gyro Update Count", () -> gyro.getAHRS().getUpdateCount());
 	}
 
 	public static synchronized SwerveDrive getInstance() {
@@ -208,8 +209,8 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		return Rotation2d.fromRadians(gyro.getOffsetedAngle());
 	}
 
-	public void resetRobotAngle(Rotation2d offsetAngle) {
-		gyro.offsetGyroZero(offsetAngle.getRadians());
+	public void resetRobotAngle(Rotation2d newZeroAngle) {
+		gyro.setGyroZero(newZeroAngle);
 	}
 
 	@Override

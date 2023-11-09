@@ -125,9 +125,7 @@ public class TeleopDriveCommand extends CommandBase {
             () -> driveMode = DriveMode.RobotCentric,
             () -> {
 				driveMode = DriveMode.AngleCentric;
-				Rotation2d zeroRotation = new Rotation2d();
-				targetAngle = zeroRotation;
-				swerve.resetRobotAngle(zeroRotation);
+				targetAngle = swerve.getRobotAngle();
 			}
         );
     }

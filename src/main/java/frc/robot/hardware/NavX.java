@@ -73,11 +73,11 @@ public class NavX {
 	}
 
 	public void zeroGyro() {
-		gyroZero = getOffsetedAngle();
+		gyroZero = getAngle();
 	}
 
-	public void setGyroZero(double newZeroRadians) {
-		gyroZero = MathUtil.angleModulus(newZeroRadians);
+	public void setGyroZero(Rotation2d newZero) {
+		gyroZero = MathUtil.angleModulus(newZero.getRadians());
 	}
 
 	public void offsetGyroZero(double offsetRadians) {
