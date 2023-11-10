@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.EnumConstants.DriveMode;
+import frc.robot.Constants.EnumConstants.DriveSens;
 
 /**
  * A swerve command with support for two swerve control modes:
@@ -29,14 +30,9 @@ public class TeleopDriveCommand extends CommandBase {
 	private CommandXboxController controller;
 	private DriveMode driveMode;
 	private Rotation2d targetAngle;
+	private DriveSens driveSens;
 	private SlewRateLimiter xLimiter = new SlewRateLimiter(1.75);
 	private SlewRateLimiter yLimiter = new SlewRateLimiter(1.75);
-
-	private boolean doSlew;
-
-	private double xSens;
-	private double ySens;
-	private double zSens;
 	
 	private double sidewaysVelocity;
 	private double forwardVelocity;
@@ -52,10 +48,7 @@ public class TeleopDriveCommand extends CommandBase {
     public void initialize() {
         driveMode = DriveMode.AngleCentric;
 		targetAngle = swerve.getRobotAngle();
-		xSens = 4;
-        ySens = 4;
-        zSens = 3.5;
-        doSlew = true;
+		driveSens = DriveSens.Fast;
 		Shuffleboard.getTab("Display").addString("Drive Mode", () -> driveMode.name());
 		Shuffleboard.getTab("Display").addDouble("Target Angle Degrees ", () -> targetAngle.getDegrees());
     }
@@ -71,17 +64,17 @@ public class TeleopDriveCommand extends CommandBase {
 			targetAngle = Rotation2d.fromDegrees(90 - 90 * Math.signum(rightY));
 		}
 		if (Math.abs(rightX) > 0.1) {
-			targetAngle = Rotation2d.fromDegrees(targetAngle.getDegrees() + rightX * zSens);
+			targetAngle = Rotation2d.fromDegrees(targetAngle.getDegrees() + rightX * driveSens.rotational);
 		}
 
-		if(doSlew) {
-			sidewaysVelocity = xLimiter.calculate(leftX) * xSens;
-			forwardVelocity = yLimiter.calculate(leftY) * ySens;
+		if(driveSens.slew) {
+			sidewaysVelocity = xLimiter.calculate(leftX) * driveSens.forward;
+			forwardVelocity = yLimiter.calculate(leftY) * driveSens.sideways;
 		} else {
-			sidewaysVelocity = leftX * xSens;
-			forwardVelocity = leftY * ySens;
+			sidewaysVelocity = leftX * driveSens.forward;
+			forwardVelocity = leftY * driveSens.sideways;
 		}
-		rotationalVelocity = rightX * zSens;
+		rotationalVelocity = rightX * driveSens.rotational;
 
 		switch (driveMode) {
 			case RobotCentric:
@@ -106,16 +99,10 @@ public class TeleopDriveCommand extends CommandBase {
     public Command toggleSlowModeCommand() {
         return Commands.startEnd(
             () -> {
-                xSens = 0.8;
-                ySens = 0.8;
-                zSens = 0.5;
-                doSlew = false;
+                driveSens = DriveSens.Slow;
             },
             () -> {
-                xSens = 4;
-                ySens = 4;
-                zSens = 3.5;
-                doSlew = true;
+                driveSens = DriveSens.Fast;
             }
         );
     }
