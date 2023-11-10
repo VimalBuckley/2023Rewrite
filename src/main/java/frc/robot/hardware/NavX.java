@@ -66,7 +66,7 @@ public class NavX {
 	}
 
 	public void zeroGyro() {
-		gyroZero = getAngle();
+		gyroZero = new Rotation2d();
 	}
 
 	public void zeroGyroWithOffset(Rotation2d offset) {

@@ -136,11 +136,11 @@ public class TeleopDriveCommand extends CommandBase {
 		);
 	}
 
-    public Command resetGyroCommand(Rotation2d offsetAngle) {
+    public Command resetGyroCommand() {
         return Commands.runOnce(
             () -> {
-                targetAngle = offsetAngle;
-                swerve.resetRobotAngle(offsetAngle);
+                targetAngle = new Rotation2d();
+                swerve.resetRobotAngle(new Rotation2d());
             }
         );    
     }

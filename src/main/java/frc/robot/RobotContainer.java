@@ -47,7 +47,7 @@ public class RobotContainer {
 		Trigger cancelationButton = xbox.start();
 
 		switchDriveModeButton.toggleOnTrue(swerveCommand.toggleRobotCentricCommand());
-		resetGyroButton.onTrue(swerveCommand.resetGyroCommand(new Rotation2d()));
+		resetGyroButton.onTrue(swerveCommand.resetGyroCommand());
 		setTargetAngleButton.onTrue(swerveCommand.setTargetAngleCommand(Rotation2d.fromDegrees(90)));
 		slowModeButton.whileTrue(swerveCommand.toggleSlowModeCommand());
 		cancelationButton.onTrue(Commands.runOnce(() -> CommandScheduler.getInstance().cancelAll()));
