@@ -115,7 +115,8 @@ public class Constants {
 	public static class EnumConstants {
 		public static enum DriveMode {
 			AngleCentric,
-			RobotCentric
+			RobotCentric,
+			AlignToTarget
 		}
 
 		public static enum DriveSens {

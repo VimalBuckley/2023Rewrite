@@ -93,6 +93,20 @@ public class TeleopDriveCommand extends CommandBase {
                     targetAngle
                 );
                 break;
+			case AlignToTarget:
+				swerve.driveRobotCentric(
+					new ChassisSpeeds(
+						ChassisSpeeds.fromFieldRelativeSpeeds(
+							forwardVelocity,
+							sidewaysVelocity, 
+							0, 
+							swerve.getRobotAngle()
+							).vxMetersPerSecond, 
+						0, 
+						0
+					)
+				);
+				break;
         }
 	}
 
@@ -116,6 +130,16 @@ public class TeleopDriveCommand extends CommandBase {
 			}
         );
     }
+
+	public Command toggleAlignToAngleCommand() {
+		return Commands.startEnd(
+			() -> driveMode = DriveMode.AlignToTarget, 
+			() -> {
+				driveMode = DriveMode.AngleCentric;
+				targetAngle = swerve.getRobotAngle();
+			}
+		);
+	}
 
 	public Command setTargetAngleCommand(Rotation2d newTarget) {
 		return Commands.runOnce(
