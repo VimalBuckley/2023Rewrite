@@ -7,7 +7,6 @@
 
 package frc.robot.utilities;
 
-import edu.wpi.first.math.MathUsageId;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -240,7 +239,7 @@ public class ExtendedMath {
 		);
 	}
 
-	public Rotation2d wrapRotation2d(Rotation2d rotationToWrap) {
+	public static Rotation2d wrapRotation2d(Rotation2d rotationToWrap) {
 		return Rotation2d.fromRadians(MathUtil.angleModulus(rotationToWrap.getRadians()));
 	}
 }

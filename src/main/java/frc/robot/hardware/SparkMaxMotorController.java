@@ -13,7 +13,7 @@ public class SparkMaxMotorController extends CANSparkMax implements EncodedMotor
 
     @Override
 	public double getAngle() {
-		return Units.radiansToRotations(getEncoder().getPosition());
+		return Units.rotationsToRadians(getEncoder().getPosition());
 	}
 
     @Override

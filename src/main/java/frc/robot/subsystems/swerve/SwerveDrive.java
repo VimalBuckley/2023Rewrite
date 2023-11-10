@@ -64,19 +64,19 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		kinematics = new SwerveDriveKinematics(getModuleTranslations());
 		odometry = new SwerveDriveOdometry(
 			kinematics,
-			gyro.getRotation2d(),
+			gyro.getUnwrappedAngle(),
 			getModulePositions(),
 			vision.getRobotPose()
 		);
 		poseEstimator = new SwerveDrivePoseEstimator(
 			kinematics,
-			gyro.getRotation2d(),
+			gyro.getUnwrappedAngle(),
 			getModulePositions(),
 			vision.getRobotPose()
 		);
-		Shuffleboard.getTab("Display").addDouble("Gyro Angle Degrees", () -> gyro.getRotation2d().getDegrees());
-		Shuffleboard.getTab("Display").addDouble("Gyro Offseted Angle", () -> Math.toDegrees(gyro.getOffsetedAngle()));
-		Shuffleboard.getTab("Display").addDouble("Gyro Zero", () -> Math.toDegrees(gyro.getGyroZero()));
+		Shuffleboard.getTab("Display").addDouble("Gyro Angle Degrees", () -> gyro.getUnwrappedAngle().getDegrees());
+		Shuffleboard.getTab("Display").addDouble("Gyro Offseted Angle", () -> gyro.getOffsetedAngle().getDegrees());
+		Shuffleboard.getTab("Display").addDouble("Gyro Zero", () -> gyro.getGyroZero().getDegrees());
 		Shuffleboard.getTab("Display").addDouble("Gyro Update Count", () -> gyro.getAHRS().getUpdateCount());
 	}
 
@@ -87,8 +87,8 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 
 	@Override
 	public void periodic() {
-		odometry.update(gyro.getRotation2d(), getModulePositions());
-		poseEstimator.update(gyro.getRotation2d(), getModulePositions());
+		odometry.update(gyro.getUnwrappedAngle(), getModulePositions());
+		poseEstimator.update(gyro.getUnwrappedAngle(), getModulePositions());
 		if (vision.seesTags()) {
 			poseEstimator.addVisionMeasurement(
 				vision.getRobotPose(),
@@ -194,19 +194,19 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 
 	public void resetPose(Pose2d newPose) {
 		odometry.resetPosition(
-			gyro.getRotation2d(),
+			gyro.getUnwrappedAngle(),
 			getModulePositions(),
 			newPose
 		);
 		poseEstimator.resetPosition(
-			gyro.getRotation2d(),
+			gyro.getUnwrappedAngle(),
 			getModulePositions(),
 			newPose
 		);
 	}
 
 	public Rotation2d getRobotAngle() {
-		return Rotation2d.fromRadians(gyro.getOffsetedAngle());
+		return gyro.getOffsetedAngle();
 	}
 
 	public void resetRobotAngle(Rotation2d newZeroAngle) {
