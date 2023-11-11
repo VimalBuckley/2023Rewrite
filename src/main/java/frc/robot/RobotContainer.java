@@ -1,12 +1,13 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.autonomous.Autonomous;
 import frc.robot.subsystems.messaging.MessagingSystem;
 import frc.robot.subsystems.swerve.SwerveDrive;
 import frc.robot.subsystems.swerve.TeleopDriveCommand;
@@ -14,17 +15,23 @@ import frc.robot.subsystems.swerve.TeleopDriveCommand;
 public class RobotContainer {
 	private CommandXboxController xbox;
 	private SwerveDrive swerve;
-	private Autonomous autonomous;
 	private MessagingSystem messaging;
 	private Command autoCommand;
+	private SendableChooser<Command> autonChooser;
 
 	private final int DRIVER_PORT = 2;
 
 	public RobotContainer() {
 		swerve = SwerveDrive.getInstance();
-		autonomous = Autonomous.getInstance();
 		messaging = MessagingSystem.getInstance();
+		setupAuto();
 		setupDriveController();
+	}
+
+	public void setupAuto() {
+		autonChooser = new SendableChooser<Command>();
+		autonChooser.setDefaultOption("No Auto", null);
+		Shuffleboard.getTab("Display").add("Auto Route", autonChooser);
 	}
 
 	public void setupDriveController() {
@@ -54,7 +61,7 @@ public class RobotContainer {
 	public void autonomousInit() {
 		messaging.enableMessaging();
 		messaging.addMessage("Auto Started");
-		autoCommand = autonomous.getAutonCommand();
+		autoCommand = autonChooser.getSelected();
 		if (autoCommand != null) {
 			autoCommand.schedule();
 		} else {
