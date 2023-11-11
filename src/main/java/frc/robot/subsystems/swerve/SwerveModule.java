@@ -1,17 +1,12 @@
 package frc.robot.subsystems.swerve;
 
 import com.pathplanner.lib.auto.PIDConstants;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.Constants.SwerveConstants;
-import frc.robot.Constants.EnumConstants.TalonModel;
 import frc.robot.hardware.EncodedMotorController;
-import frc.robot.hardware.SparkMaxMotorController;
-import frc.robot.hardware.TalonMotorController;
 
 public class SwerveModule {
 	private EncodedMotorController driveMotor;
@@ -23,12 +18,8 @@ public class SwerveModule {
 		SwerveMotorConfig angleConfig,
 		Translation2d translationToCenter
 	) {
-		driveMotor = driveConfig.isNeo ? 
-			new SparkMaxMotorController(driveConfig.canId, MotorType.kBrushless) :
-			new TalonMotorController(driveConfig.canId, TalonModel.TalonFX);
-		angleMotor = angleConfig.isNeo ? 
-			new SparkMaxMotorController(angleConfig.canId, MotorType.kBrushless) :
-			new TalonMotorController(angleConfig.canId, TalonModel.TalonFX);
+		driveMotor = driveConfig.motor;
+		angleMotor = angleConfig.motor;
 
 		driveMotor
 			.setInversion(driveConfig.invert)
@@ -58,7 +49,7 @@ public class SwerveModule {
 		return new SwerveModuleState(
 			driveMotor.getAngularVelocity() *
 			SwerveConstants.DRIVE_RATIO *
-			SwerveConstants.WHEEL_DIAMETER /
+			SwerveConstants.WHEEL_DIAMETER_METERS /
 			2,
 			new Rotation2d(angleMotor.getAngle() * SwerveConstants.ANGLE_RATIO)
 		);
@@ -73,7 +64,7 @@ public class SwerveModule {
 			driveMotor.getAngle() /
 			(2 * Math.PI) * 
 			SwerveConstants.DRIVE_RATIO *
-			SwerveConstants.WHEEL_DIAMETER *
+			SwerveConstants.WHEEL_DIAMETER_METERS *
 			Math.PI,
 			getModuleState().angle
 		);
@@ -91,7 +82,7 @@ public class SwerveModule {
 		driveMotor.setAngularVelocity(
 			targetVelocityMetersPerSecond *
 			2 /
-			(SwerveConstants.DRIVE_RATIO * SwerveConstants.WHEEL_DIAMETER)
+			(SwerveConstants.DRIVE_RATIO * SwerveConstants.WHEEL_DIAMETER_METERS)
 		);
 	}
 
@@ -108,7 +99,7 @@ public class SwerveModule {
 	 * @param desiredState The desired state.
 	 * @param currentAngle The current module angle.
 	 */
-	public static SwerveModuleState optimizeTalon(SwerveModuleState desiredState, Rotation2d currentAngle) {
+	private SwerveModuleState optimizeTalon(SwerveModuleState desiredState, Rotation2d currentAngle) {
 		double targetAngle = placeInAppropriate0To360Scope(currentAngle.getDegrees(), desiredState.angle.getDegrees());
 		double targetSpeed = desiredState.speedMetersPerSecond;
 		double delta = targetAngle - currentAngle.getDegrees();
@@ -129,7 +120,7 @@ public class SwerveModule {
 	 * @param newAngle       the angle to place in the scope
 	 * @return the new angle within the appropriate 0 to 360 degree scope
 	 */
-	private static double placeInAppropriate0To360Scope(double scopeReference, double newAngle) {
+	private double placeInAppropriate0To360Scope(double scopeReference, double newAngle) {
 		double lowerBound;
 		double upperBound;
 		double lowerOffset = scopeReference % 360;
@@ -155,19 +146,18 @@ public class SwerveModule {
 	}
 
 	public static class SwerveMotorConfig {
-		public boolean isDriveMotor;
-		public boolean isNeo;
+		public EncodedMotorController motor;
 		public boolean invert;
-		public int canId;
 		public int currentLimit;
 		public PIDConstants pid;
 		public SwerveMotorConfig(
-			int canId, boolean isDriveMotor, boolean invert, 
-			boolean isNeo, int currentLimit, PIDConstants pid) {
-			this.canId = canId;
-			this.isDriveMotor = isDriveMotor;
+			EncodedMotorController motor,
+			boolean invert, 
+			int currentLimit, 
+			PIDConstants pid
+		) {
+			this.motor = motor;
 			this.invert = invert;
-			this.isNeo = isNeo;
 			this.currentLimit = currentLimit;
 			this.pid = pid;
 		}

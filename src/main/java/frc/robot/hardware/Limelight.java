@@ -12,7 +12,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import frc.robot.Constants.EnumConstants.CameraMode;
 
 public class Limelight {
 	private NetworkTable table;
@@ -52,14 +51,6 @@ public class Limelight {
 			adjustedDegrees = -(90 + rawDegrees);
 		}
 		return Math.toRadians(adjustedDegrees);
-	}
-
-	public void setCameraMode(CameraMode mode) {
-		if (mode == CameraMode.DriverCamera) {
-			setEntry("camMode", 1);
-		} else if (mode == CameraMode.VisionProcessor) {
-			setEntry("camMode", 0);
-		}
 	}
 
 	public void setPipeline(int index) {

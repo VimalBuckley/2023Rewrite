@@ -12,7 +12,6 @@ import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase implements Loggable {
-
 	private static Vision instance;
 	private Limelight aprilTagLimelight;
 	private Limelight gamePieceLimelight;

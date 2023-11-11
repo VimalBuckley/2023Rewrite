@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.JoystickConstants;
 import frc.robot.autonomous.Autonomous;
 import frc.robot.subsystems.messaging.MessagingSystem;
 import frc.robot.subsystems.swerve.SwerveDrive;
@@ -19,6 +18,8 @@ public class RobotContainer {
 	private MessagingSystem messaging;
 	private Command autoCommand;
 
+	private final int DRIVER_PORT = -2;
+
 	public RobotContainer() {
 		swerve = SwerveDrive.getInstance();
 		autonomous = Autonomous.getInstance();
@@ -27,7 +28,7 @@ public class RobotContainer {
 	}
 
 	public void setupDriveController() {
-		xbox = new CommandXboxController(JoystickConstants.DRIVER_PORT);
+		xbox = new CommandXboxController(DRIVER_PORT);
 		TeleopDriveCommand swerveCommand = new TeleopDriveCommand(xbox);
 		swerve.setDefaultCommand(swerveCommand);
 

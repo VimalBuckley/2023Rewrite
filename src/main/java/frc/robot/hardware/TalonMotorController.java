@@ -6,8 +6,6 @@ import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.BaseTalon;
 import com.pathplanner.lib.auto.PIDConstants;
 
-import frc.robot.Constants.EnumConstants.TalonModel;
-
 public class TalonMotorController extends BaseTalon implements EncodedMotorController{
     private TalonModel model;
 
@@ -16,6 +14,18 @@ public class TalonMotorController extends BaseTalon implements EncodedMotorContr
         this.model = model;
         if (model == TalonModel.TalonFX) {
             configureForSwerve();
+        }
+    }
+
+    public static enum TalonModel {
+        TalonFX("Talon FX", 2048 / Math.PI / 2),
+        TalonSRX("Talon SRX", 4096 / Math.PI / 2);
+        
+        public String name;
+        public double ticksPerRadian;
+        private TalonModel(String name, double ticksPerRadian) {
+            this.name = name;
+            this.ticksPerRadian = ticksPerRadian;
         }
     }
 

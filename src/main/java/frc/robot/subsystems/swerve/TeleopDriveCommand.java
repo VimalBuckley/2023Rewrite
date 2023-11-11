@@ -9,8 +9,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.Constants.EnumConstants.DriveMode;
-import frc.robot.Constants.EnumConstants.DriveSens;
 
 /**
  * A swerve command with support for two swerve control modes:
@@ -155,6 +153,29 @@ public class TeleopDriveCommand extends CommandBase {
             }
         );    
     }
+
+	public static enum DriveMode {
+		AngleCentric,
+		RobotCentric,
+		AlignToTarget
+	}
+
+	public static enum DriveSens {
+		Fast(4, 4, 3.5, true),
+		Slow(0.8, 0.8, 0.5, false);
+
+		public double forward;
+		public double sideways;
+		public double rotational;
+		public boolean slew;
+
+		private DriveSens(double forward, double sideways, double rotational, boolean doSlew) {
+			this.forward = forward;
+			this.sideways = sideways;
+			this.rotational = rotational;
+			this.slew = doSlew;
+		}
+	}
 
 	public void initSendable(SendableBuilder builder) {
 		builder.addStringProperty("Drive Mode", () -> driveMode.name(), null);
