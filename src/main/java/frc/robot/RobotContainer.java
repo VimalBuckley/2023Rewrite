@@ -18,7 +18,7 @@ public class RobotContainer {
 	private MessagingSystem messaging;
 	private Command autoCommand;
 
-	private final int DRIVER_PORT = -2;
+	private final int DRIVER_PORT = 2;
 
 	public RobotContainer() {
 		swerve = SwerveDrive.getInstance();

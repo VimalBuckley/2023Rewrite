@@ -40,7 +40,7 @@ public class NavX {
 		return getYaw();
 	}
 
-	/** Interval: [-pi, pi] @return Radians */
+	/** Interval: [-pi, pi] */
 	public Rotation2d getOffsetedAngle() {
 		return ExtendedMath.wrapRotation2d(getAngle().minus(getGyroZero()));
 	}
