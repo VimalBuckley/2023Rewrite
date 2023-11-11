@@ -4,16 +4,30 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.BaseTalon;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.pathplanner.lib.auto.PIDConstants;
 
-public class TalonMotorController extends BaseTalon implements EncodedMotorController{
+public class TalonMotorController implements EncodedMotorController{
     private TalonModel model;
+    private BaseTalon innerTalon;
 
     public TalonMotorController(int deviceID, TalonModel model) {
-        super(deviceID, model.name);
+        switch (model) {
+            case TalonFX:
+                innerTalon = new TalonFX(deviceID);
+                break;
+            case TalonSRX:
+                innerTalon = new TalonSRX(deviceID);
+                break;
+        }
         this.model = model;
         if (model == TalonModel.TalonFX) {
-            configureForSwerve();
+            innerTalon.config_IntegralZone(0, 0);
+            innerTalon.configMotionCruiseVelocity(10000);
+            innerTalon.configMotionAcceleration(10000);
+            innerTalon.configAllowableClosedloopError(0, 0);
+            innerTalon.configClearPositionOnQuadIdx(true, 10);
         }
     }
 
@@ -29,51 +43,43 @@ public class TalonMotorController extends BaseTalon implements EncodedMotorContr
         }
     }
 
-    private void configureForSwerve() {
-        config_IntegralZone(0, 0);
-        configMotionCruiseVelocity(10000);
-        configMotionAcceleration(10000);
-        configAllowableClosedloopError(0, 0);
-        configClearPositionOnQuadIdx(true, 10);
-    }
-
     @Override
     public void setOutput(double targetPercentOutput) {
-        set(ControlMode.PercentOutput, targetPercentOutput);
+        innerTalon.set(ControlMode.PercentOutput, targetPercentOutput);
     }
 
     @Override
     public double getOutput() {
-        return getMotorOutputPercent();
+        return innerTalon.getMotorOutputPercent();
     }
 
     @Override
     public void setAngularVelocity(double targetAngularVelocity) {
-        set(ControlMode.Velocity, targetAngularVelocity * model.ticksPerRadian / 10.0);
+        innerTalon.set(ControlMode.Velocity, targetAngularVelocity * model.ticksPerRadian / 10.0);
     }
 
     @Override
     public double getAngularVelocity() {
-        return getSelectedSensorVelocity() / model.ticksPerRadian * 10;
+        return innerTalon.getSelectedSensorVelocity() / model.ticksPerRadian * 10;
     }
 
     @Override
     public void setAngle(double targetAngle) {
         if (model == TalonModel.TalonSRX) {
-            set(ControlMode.Position, targetAngle * model.ticksPerRadian);
+            innerTalon.set(ControlMode.Position, targetAngle * model.ticksPerRadian);
         } else {
-            set(ControlMode.MotionMagic, targetAngle * model.ticksPerRadian);
+            innerTalon.set(ControlMode.MotionMagic, targetAngle * model.ticksPerRadian);
         }
     }
 
     @Override
     public double getAngle() {
-        return getSelectedSensorPosition() / model.ticksPerRadian;
+        return innerTalon.getSelectedSensorPosition() / model.ticksPerRadian;
     }
 
     @Override
     public EncodedMotorController configureCurrentLimit(int currentLimit) {
-        configSupplyCurrentLimit(
+        innerTalon.configSupplyCurrentLimit(
             new SupplyCurrentLimitConfiguration(
                     true, 
                     currentLimit, 
@@ -87,57 +93,57 @@ public class TalonMotorController extends BaseTalon implements EncodedMotorContr
 
     @Override
     public EncodedMotorController setPID(PIDConstants pid) {
-        config_kP(0, pid.kP);
-        config_kI(0, pid.kI);
-        config_kD(0, pid.kD);
+        innerTalon.config_kP(0, pid.kP);
+        innerTalon.config_kI(0, pid.kI);
+        innerTalon.config_kD(0, pid.kD);
         return this;
     }
 
     @Override
     public EncodedMotorController setMinAngle(double minPosition) {
-        configReverseSoftLimitEnable(true);
-        configReverseSoftLimitThreshold(minPosition * model.ticksPerRadian);
+        innerTalon.configReverseSoftLimitEnable(true);
+        innerTalon.configReverseSoftLimitThreshold(minPosition * model.ticksPerRadian);
         return this;
     }
 
     @Override
     public EncodedMotorController setMaxAngle(double maxPosition) {
-        configForwardSoftLimitEnable(true);
-        configForwardSoftLimitThreshold(maxPosition * model.ticksPerRadian);
+        innerTalon.configForwardSoftLimitEnable(true);
+        innerTalon.configForwardSoftLimitThreshold(maxPosition * model.ticksPerRadian);
         return this;
     }
 
     @Override
     public EncodedMotorController setMinOutput(double minOutput) {
-       configPeakOutputReverse(minOutput);
+        innerTalon.configPeakOutputReverse(minOutput);
        return this;
     }
 
     @Override
     public EncodedMotorController setMaxOutput(double maxOutput) {
-        configPeakOutputForward(maxOutput);
+        innerTalon.configPeakOutputForward(maxOutput);
         return this;
     }
     
     @Override
     public EncodedMotorController setInversion(boolean shouldInvert) {
-        super.setInverted(shouldInvert);
+        innerTalon.setInverted(shouldInvert);
         return this;
     }
 
     @Override
     public EncodedMotorController setBrakeOnIdle(boolean shouldBreak) {
         if (shouldBreak) {
-            setNeutralMode(NeutralMode.Brake);
+            innerTalon.setNeutralMode(NeutralMode.Brake);
         } else {
-            setNeutralMode(NeutralMode.Coast);
+            innerTalon.setNeutralMode(NeutralMode.Coast);
         }
         return this;
     }
 
     @Override
     public EncodedMotorController setAngleTolerance(double tolerance) {
-        configAllowableClosedloopError(0, tolerance * model.ticksPerRadian);
+        innerTalon.configAllowableClosedloopError(0, tolerance * model.ticksPerRadian);
         return this;
     }
 }
