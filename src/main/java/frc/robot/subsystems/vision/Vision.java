@@ -2,6 +2,7 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -20,12 +21,24 @@ public class Vision extends SubsystemBase implements Loggable {
 	private Limelight aprilTagLimelight;
 	private Limelight gamePieceLimelight;
 
+	private double LIMELIGHT2_HEIGHT_METERS = 0.232;
+	private double CONE_HALF_HEIGHT_METERS = 0.16;
+	private Rotation2d LIMELIGHT_ANGLE = Rotation2d.fromDegrees(-12);
+
 	private Vision() {
 		aprilTagLimelight = new Limelight("limelight-hehehe");
 		gamePieceLimelight = new Limelight("limelight-haha");
 		Shuffleboard.getTab("Display").addDouble(
 			"Horizontal Offset", 
 			() -> getGamePieceHorizontalOffset().orElse(new Rotation2d()).getDegrees()
+		);
+		Shuffleboard.getTab("Display").addDouble(
+			"Forward Distance", 
+			() -> getGamePieceTranslation().orElse(new Translation2d()).getX()
+		);
+		Shuffleboard.getTab("Display").addDouble(
+			"Sideways Distance",
+			() -> getGamePieceTranslation().orElse(new Translation2d()).getY()
 		);
 	}
 
@@ -57,10 +70,29 @@ public class Vision extends SubsystemBase implements Loggable {
 		return aprilTagLimelight.hasValidTargets();
 	}
 
+	public Optional<Translation2d> getGamePieceTranslation() {
+		if (!seesGamePiece()) return Optional.empty();
+		double forwardDistance = 
+			(LIMELIGHT2_HEIGHT_METERS - CONE_HALF_HEIGHT_METERS) / 
+			Math.tan(
+				LIMELIGHT_ANGLE.plus(
+					getGamePieceVerticalOffset().orElse(new Rotation2d())
+				).getRadians()
+			);
+		return Optional.of(
+			new Translation2d(
+				forwardDistance,
+				forwardDistance * Math.tan(
+					getGamePieceVerticalOffset().orElse(new Rotation2d())
+					.getRadians()
+				)
+			)	
+		);
+	}
+
 	public Optional<Integer> getTagId() {
-		return seesTag()
-			? Optional.of(aprilTagLimelight.getTargetTagId())
-			: Optional.empty();
+		if (!seesTag()) return Optional.empty();
+		return Optional.of(aprilTagLimelight.getTargetTagId());
 	}
 
 	public Optional<Pose2d> getRobotPose() {
@@ -68,39 +100,33 @@ public class Vision extends SubsystemBase implements Loggable {
 	}
 
 	public Optional<Pose2d> getRobotPose(Alliance poseOrigin) {
-		return seesTag() 
-			? Optional.of(aprilTagLimelight.getRobotPoseToAlliance(poseOrigin))
-			: Optional.empty();
+		if (!seesTag()) return Optional.empty();
+		return Optional.of(aprilTagLimelight.getRobotPoseToAlliance(poseOrigin));
 	}
 
 	public Optional<Pose2d> getRelativeTargetPose() {
-		return seesTag()
-			? Optional.of(aprilTagLimelight.getTargetPoseToRobot())
-			: Optional.empty();
+		if (!seesTag()) return Optional.empty();
+		return Optional.of(aprilTagLimelight.getTargetPoseToRobot());
 	}
 
 	public Optional<Rotation2d> getGamePieceHorizontalOffset() {
-		return seesGamePiece()
-			? Optional.of(gamePieceLimelight.getHorizontalOffsetFromCrosshair())
-			: Optional.empty();
+		if (!seesGamePiece()) return Optional.empty();
+		return Optional.of(gamePieceLimelight.getHorizontalOffsetFromCrosshair());
 	}
 
 	public Optional<Rotation2d> getGamePieceVerticalOffset() {
-		return seesGamePiece()
-			? Optional.of(gamePieceLimelight.getVerticalOffsetFromCrosshair())
-			: Optional.empty();
+		if (!seesGamePiece()) return Optional.empty();
+		return Optional.of(gamePieceLimelight.getVerticalOffsetFromCrosshair());
 	}
 
 	public Optional<Double> getGamePieceTakenArea() {
-		return seesGamePiece()
-			? Optional.of(gamePieceLimelight.getTargetArea())
-			: Optional.empty();
+		if (!seesGamePiece()) return Optional.empty();
+		return Optional.of(gamePieceLimelight.getTargetArea());
 	}
 
 	public Optional<Rotation2d> getGamePieceSkew() {
-		return seesGamePiece()
-			? Optional.of(gamePieceLimelight.getSkew())
-			: Optional.empty();
+		if (!seesGamePiece()) return Optional.empty();
+		return Optional.of(gamePieceLimelight.getSkew());
 	}
 
 	public boolean seesGamePiece() {
