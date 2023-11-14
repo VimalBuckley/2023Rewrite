@@ -64,13 +64,13 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 			kinematics,
 			gyro.getUnwrappedAngle(),
 			getModulePositions(),
-			vision.getRobotPose()
+			vision.getRobotPose().orElse(new Pose2d())
 		);
 		poseEstimator = new SwerveDrivePoseEstimator(
 			kinematics,
 			gyro.getUnwrappedAngle(),
 			getModulePositions(),
-			vision.getRobotPose()
+			vision.getRobotPose().orElse(new Pose2d())
 		);
 	}
 
@@ -83,9 +83,9 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 	public void periodic() {
 		odometry.update(gyro.getUnwrappedAngle(), getModulePositions());
 		poseEstimator.update(gyro.getUnwrappedAngle(), getModulePositions());
-		if (vision.seesTags()) {
+		if (vision.seesTag()) {
 			poseEstimator.addVisionMeasurement(
-				vision.getRobotPose(),
+				vision.getRobotPose().orElse(getEstimatorPose()),
 				Timer.getFPGATimestamp()
 			);
 		}
@@ -119,7 +119,8 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 
 	public void driveAlignToTarget(
 		double forwardVelocity,
-		double leftVelocity
+		double leftVelocity,
+		Rotation2d aligningAngle
 	) {
 		driveRobotCentric(
 			new ChassisSpeeds(
@@ -129,22 +130,9 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 					0, 
 					getRobotAngle()
 				).vxMetersPerSecond, 
-				-Math.toDegrees(vision.getGamePieceHorizontalAngleOffset())/10, 
-				0
-			)
-		);
-	}
-
-	public void driveRobotCentric(
-		double forwardVelocity,
-		double leftVelocity,
-		Rotation2d targetAngle
-	) {
-		driveRobotCentric(
-			new ChassisSpeeds(
-				forwardVelocity, 
-				leftVelocity, 
-				calcRotationalVelocity(targetAngle)
+				vision.getGamePieceHorizontalOffset().orElse(
+					new Rotation2d()).getDegrees() / 10, 
+				calcRotationalVelocity(aligningAngle)
 			)
 		);
 	}

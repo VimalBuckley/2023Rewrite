@@ -1,16 +1,19 @@
 package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.hardware.Limelight;
 import frc.robot.utilities.Loggable;
+
+import java.util.Optional;
+
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
+
 
 public class Vision extends SubsystemBase implements Loggable {
 	private static Vision instance;
@@ -20,7 +23,10 @@ public class Vision extends SubsystemBase implements Loggable {
 	private Vision() {
 		aprilTagLimelight = new Limelight("limelight-hehehe");
 		gamePieceLimelight = new Limelight("limelight-haha");
-		Shuffleboard.getTab("Display").addDouble("Horizontal Offset", () -> Math.toDegrees(getGamePieceHorizontalAngleOffset()));
+		Shuffleboard.getTab("Display").addDouble(
+			"Horizontal Offset", 
+			() -> getGamePieceHorizontalOffset().orElse(new Rotation2d()).getDegrees()
+		);
 	}
 
 	public static synchronized Vision getInstance() {
@@ -30,8 +36,8 @@ public class Vision extends SubsystemBase implements Loggable {
 
 	@Override
 	public void logData(LogTable table) {
-		table.put("Tag ID", getTagId());
-		Logger.getInstance().recordOutput("Vision Odometry", getRobotPose());
+		table.put("Tag ID", getTagId().orElse(0));
+		Logger.getInstance().recordOutput("Vision Odometry", getRobotPose().orElse(new Pose2d()));
 	}
 
 	@Override
@@ -47,74 +53,57 @@ public class Vision extends SubsystemBase implements Loggable {
 		return gamePieceLimelight;
 	}
 
-	public boolean seesTags() {
-		return getTagId() != -1;
+	public boolean seesTag() {
+		return aprilTagLimelight.hasValidTargets();
 	}
 
-	/** Defaults to -1 */
-	public int getTagId() {
-		return aprilTagLimelight.getTargetTagId();
+	public Optional<Integer> getTagId() {
+		return seesTag()
+			? Optional.of(aprilTagLimelight.getTargetTagId())
+			: Optional.empty();
 	}
 
-	/** Defaults to a default Pose2d */
-	public Pose2d getRobotPose() {
+	public Optional<Pose2d> getRobotPose() {
 		return getRobotPose(DriverStation.getAlliance());
 	}
 
-	/** Defaults to a default Pose2d */
-	public Pose2d getRobotPose(Alliance poseOrigin) {
-		return aprilTagLimelight.getRobotPoseToAlliance(poseOrigin);
+	public Optional<Pose2d> getRobotPose(Alliance poseOrigin) {
+		return seesTag() 
+			? Optional.of(aprilTagLimelight.getRobotPoseToAlliance(poseOrigin))
+			: Optional.empty();
 	}
 
-	/** Defaults to a default Pose2d */
-	public Pose2d getRelativeTargetPose() {
-		return aprilTagLimelight.getTargetPoseToRobot();
+	public Optional<Pose2d> getRelativeTargetPose() {
+		return seesTag()
+			? Optional.of(aprilTagLimelight.getTargetPoseToRobot())
+			: Optional.empty();
 	}
 
-	/** Defaults to 0 */
-	public double getGamePieceHorizontalAngleOffset() {
-		return gamePieceLimelight.getHorizontalOffsetFromCrosshair();
+	public Optional<Rotation2d> getGamePieceHorizontalOffset() {
+		return seesGamePiece()
+			? Optional.of(gamePieceLimelight.getHorizontalOffsetFromCrosshair())
+			: Optional.empty();
 	}
 
-	/** Defaults to 0 */
-	public double getGamePieceVerticalAngleOffset() {
-		return gamePieceLimelight.getVerticalOffsetFromCrosshair();
+	public Optional<Rotation2d> getGamePieceVerticalOffset() {
+		return seesGamePiece()
+			? Optional.of(gamePieceLimelight.getVerticalOffsetFromCrosshair())
+			: Optional.empty();
 	}
 
-	/** Defaults to 0 */
-	public double getGamePieceTakenArea() {
-		return gamePieceLimelight.getTargetArea();
+	public Optional<Double> getGamePieceTakenArea() {
+		return seesGamePiece()
+			? Optional.of(gamePieceLimelight.getTargetArea())
+			: Optional.empty();
 	}
 
-	/** Defaults to 0 */
-	public double getGamePieceSkew() {
-		return gamePieceLimelight.getSkew();
+	public Optional<Rotation2d> getGamePieceSkew() {
+		return seesGamePiece()
+			? Optional.of(gamePieceLimelight.getSkew())
+			: Optional.empty();
 	}
 
-	public boolean seesGamePieces() {
+	public boolean seesGamePiece() {
 		return gamePieceLimelight.hasValidTargets();
-	}
-
-	public void setGamePiecePipeline(int pipeline) {
-		gamePieceLimelight.setPipeline(pipeline);
-	}
-
-	@Override
-	public void initSendable(SendableBuilder builder) {
-		builder.addBooleanProperty(
-			"Game Piece Limelight: Valid Targets",
-			() -> seesGamePieces(),
-			null
-		);
-		builder.addDoubleProperty(
-			"Game Piece Limelight: Horizontal Offset (Degrees)",
-			() -> Units.radiansToDegrees(getGamePieceHorizontalAngleOffset()),
-			null
-		);
-		builder.addDoubleProperty(
-			"Game Piece Limelight: Target Area (%)",
-			() -> getGamePieceTakenArea(),
-			null
-		);
 	}
 }

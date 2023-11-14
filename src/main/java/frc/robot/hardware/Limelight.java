@@ -30,19 +30,19 @@ public class Limelight {
 		}
 	}
 
-	public double getHorizontalOffsetFromCrosshair() {
-		return Math.toRadians(getEntry("tx"));
+	public Rotation2d getHorizontalOffsetFromCrosshair() {
+		return Rotation2d.fromDegrees(-getEntry("tx"));
 	}
 
-	public double getVerticalOffsetFromCrosshair() {
-		return Math.toRadians(getEntry("ty"));
+	public Rotation2d getVerticalOffsetFromCrosshair() {
+		return Rotation2d.fromDegrees(getEntry("ty"));
 	}
 
 	public double getTargetArea() {
 		return getEntry("ta");
 	}
 
-	public double getSkew() {
+	public Rotation2d getSkew() {
 		double rawDegrees = getEntry("ts");
 		double adjustedDegrees;
 		if (Math.abs(rawDegrees) < 45) {
@@ -50,7 +50,7 @@ public class Limelight {
 		} else {
 			adjustedDegrees = -(90 + rawDegrees);
 		}
-		return Math.toRadians(adjustedDegrees);
+		return Rotation2d.fromDegrees(adjustedDegrees);
 	}
 
 	public void setPipeline(int index) {

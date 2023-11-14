@@ -96,7 +96,8 @@ public class TeleopDriveCommand extends CommandBase {
 			case AlignToTarget:
 				swerve.driveAlignToTarget(
 					forwardVelocity, 
-					sidewaysVelocity
+					sidewaysVelocity,
+					alignmentAngle
 				);
 				break;
         }
