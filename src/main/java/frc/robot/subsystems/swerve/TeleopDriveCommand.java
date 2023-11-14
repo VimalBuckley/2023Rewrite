@@ -28,6 +28,7 @@ public class TeleopDriveCommand extends CommandBase {
 	private CommandXboxController controller;
 	private DriveMode driveMode;
 	private Rotation2d targetAngle;
+	private Rotation2d alignmentAngle;
 	private DriveSens driveSens;
 	private SlewRateLimiter xLimiter = new SlewRateLimiter(1.75);
 	private SlewRateLimiter yLimiter = new SlewRateLimiter(1.75);
@@ -46,6 +47,7 @@ public class TeleopDriveCommand extends CommandBase {
     public void initialize() {
         driveMode = DriveMode.AngleCentric;
 		targetAngle = swerve.getRobotAngle();
+		alignmentAngle = swerve.getRobotAngle();
 		driveSens = DriveSens.Fast;
 		Shuffleboard.getTab("Display").addString("Drive Mode", () -> driveMode.name());
 		Shuffleboard.getTab("Display").addDouble("Target Angle Degrees ", () -> targetAngle.getDegrees());
@@ -79,7 +81,7 @@ public class TeleopDriveCommand extends CommandBase {
 				swerve.driveRobotCentric(
 					new ChassisSpeeds(
 						forwardVelocity, 
-						sidewaysVelocity, 
+						sidewaysVelocity,
 						rotationalVelocity
 					)
                 );
@@ -92,17 +94,9 @@ public class TeleopDriveCommand extends CommandBase {
                 );
                 break;
 			case AlignToTarget:
-				swerve.driveRobotCentric(
-					new ChassisSpeeds(
-						ChassisSpeeds.fromFieldRelativeSpeeds(
-							forwardVelocity,
-							sidewaysVelocity, 
-							0, 
-							swerve.getRobotAngle()
-							).vxMetersPerSecond, 
-						0, 
-						0
-					)
+				swerve.driveAlignToTarget(
+					forwardVelocity, 
+					sidewaysVelocity
 				);
 				break;
         }
@@ -131,7 +125,10 @@ public class TeleopDriveCommand extends CommandBase {
 
 	public Command toggleAlignToAngleCommand() {
 		return Commands.startEnd(
-			() -> driveMode = DriveMode.AlignToTarget, 
+			() -> {
+				driveMode = DriveMode.AlignToTarget;
+				alignmentAngle = swerve.getRobotAngle();
+			}, 
 			() -> {
 				driveMode = DriveMode.AngleCentric;
 				targetAngle = swerve.getRobotAngle();

@@ -5,6 +5,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.hardware.Limelight;
 import frc.robot.utilities.Loggable;
@@ -19,6 +20,7 @@ public class Vision extends SubsystemBase implements Loggable {
 	private Vision() {
 		aprilTagLimelight = new Limelight("limelight-hehehe");
 		gamePieceLimelight = new Limelight("limelight-haha");
+		Shuffleboard.getTab("Display").addDouble("Horizontal Offset", () -> Math.toDegrees(getGamePieceHorizontalAngleOffset()));
 	}
 
 	public static synchronized Vision getInstance() {
