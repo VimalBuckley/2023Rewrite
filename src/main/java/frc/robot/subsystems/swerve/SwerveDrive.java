@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.hardware.NavX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.utilities.Loggable;
+
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 
@@ -94,7 +95,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		// pose.
 		if (vision.getRobotPose().isPresent())
 			poseEstimator.addVisionMeasurement(
-					vision.getRobotPose().get(),
+					vision.getRobotPose().orElse(getEstimatorPose()),
 					Timer.getFPGATimestamp());
 	}
 

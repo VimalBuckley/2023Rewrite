@@ -3,7 +3,6 @@ package frc.robot.subsystems.swerve;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -173,17 +172,5 @@ public class TeleopDriveCommand extends CommandBase {
 			this.rotational = rotational;
 			this.slew = doSlew;
 		}
-	}
-
-	public void initSendable(SendableBuilder builder) {
-		builder.addStringProperty("Drive Mode", driveMode::toString, mode -> {
-			try {
-				// TODO: Probably wont work, can do chooser but no need, thought its nice
-				driveMode = DriveMode.valueOf(mode);
-			} catch (IllegalArgumentException e) {
-				System.out.println("Invalid drive mode: " + mode);
-			}
-		});
-		builder.addDoubleProperty("Target Angle (deg): ", targetAngle::getDegrees, null);
 	}
 }

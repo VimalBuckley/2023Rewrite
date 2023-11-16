@@ -170,9 +170,9 @@ public class SwerveModule {
 
 		public static class Builder {
 			private EncodedMotorController motor;
-			private boolean invert;
-			private int currentLimit;
-			private PIDConstants pid;
+			private boolean invert = false;
+			private int currentLimit = 25;
+			private PIDConstants pid = new PIDConstants(0, 0, 0);
 
 			public Builder motor(EncodedMotorController motor) {
 				this.motor = motor;
