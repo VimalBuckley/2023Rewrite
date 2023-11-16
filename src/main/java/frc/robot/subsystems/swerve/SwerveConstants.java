@@ -20,69 +20,77 @@ public class SwerveConstants {
     /** Angle rotations per motor rotation */
     public static final double ANGLE_RATIO = 1 / 6.75;
 
-    public static final SwerveMotorConfig FRONT_LEFT_DRIVE_CONFIG = new SwerveMotorConfig(
-        new TalonMotorController(CANConstants.SWERVE_FRONT_LEFT_DRIVE, TalonModel.TalonFX), 
-        true, 
-        35, 
-        new PIDConstants(0.075, 0, 0)
-    );
-    public static final SwerveMotorConfig FRONT_LEFT_ANGLE_CONFIG = new SwerveMotorConfig(
-        new TalonMotorController(CANConstants.SWERVE_FRONT_LEFT_ANGLE, TalonModel.TalonFX),
-        false, 
-        25, 
-        new PIDConstants(0.3, 0, 0)
-    );
+    public static final SwerveMotorConfig FRONT_LEFT_DRIVE_CONFIG = new SwerveMotorConfig.Builder()
+            .motor(new TalonMotorController(CANConstants.SWERVE_FRONT_LEFT_DRIVE, TalonModel.TalonFX))
+            .invert(true)
+            .currentLimit(35)
+            .pid(new PIDConstants(0.075, 0, 0))
+            .build();
+
+    public static final SwerveMotorConfig FRONT_LEFT_ANGLE_CONFIG = new SwerveMotorConfig.Builder()
+            .motor(new TalonMotorController(CANConstants.SWERVE_FRONT_LEFT_ANGLE, TalonModel.TalonFX))
+            .invert(false)
+            .currentLimit(25)
+            .pid(new PIDConstants(0.3, 0, 0))
+            .build();
+
     public static final Translation2d FRONT_LEFT_MODULE_TRANSLATION = new Translation2d(
         0.3175,
         0.2413
     );
 
-    public static final SwerveMotorConfig FRONT_RIGHT_DRIVE_CONFIG = new SwerveMotorConfig(
-        new TalonMotorController(CANConstants.SWERVE_FRONT_RIGHT_DRIVE, TalonModel.TalonFX),
-        false, 
-        35, 
-        new PIDConstants(0.05, 0, 0)
-    );
-    public static final SwerveMotorConfig FRONT_RIGHT_ANGLE_CONFIG = new SwerveMotorConfig(
-        new TalonMotorController(CANConstants.SWERVE_FRONT_RIGHT_ANGLE, TalonModel.TalonFX),
-        false, 
-        25, 
-        new PIDConstants(0.3, 0, 0)
-    );
+    public static final SwerveMotorConfig FRONT_RIGHT_DRIVE_CONFIG = new SwerveMotorConfig.Builder()
+            .motor(new TalonMotorController(CANConstants.SWERVE_FRONT_RIGHT_DRIVE, TalonModel.TalonFX))
+            .invert(false)
+            .currentLimit(35)
+            .pid(new PIDConstants(0.05, 0, 0))
+            .build();
+
+    public static final SwerveMotorConfig FRONT_RIGHT_ANGLE_CONFIG = new SwerveMotorConfig.Builder()
+            .motor(new TalonMotorController(CANConstants.SWERVE_FRONT_RIGHT_ANGLE, TalonModel.TalonFX))
+            .invert(false)
+            .currentLimit(25)
+            .pid(new PIDConstants(0.3, 0, 0))
+            .build();
+
     public static final Translation2d FRONT_RIGHT_MODULE_TRANSLATION = new Translation2d(
         0.3175,
         -0.2413
     );
 
-    public static final SwerveMotorConfig BACK_LEFT_DRIVE_CONFIG = new SwerveMotorConfig(
-        new TalonMotorController(CANConstants.SWERVE_BACK_LEFT_DRIVE, TalonModel.TalonFX),
-        true, 
-        35, 
-        new PIDConstants(0.075, 0, 0)
-    );
-    public static final SwerveMotorConfig BACK_LEFT_ANGLE_CONFIG = new SwerveMotorConfig(
-        new TalonMotorController(CANConstants.SWERVE_BACK_LEFT_ANGLE, TalonModel.TalonFX),
-        false, 
-        25, 
-        new PIDConstants(0.25, 0, 0)
-    );
+    public static final SwerveMotorConfig BACK_LEFT_DRIVE_CONFIG = new SwerveMotorConfig.Builder()
+            .motor(new TalonMotorController(CANConstants.SWERVE_BACK_LEFT_DRIVE, TalonModel.TalonFX))
+            .invert(true)
+            .currentLimit(35)
+            .pid(new PIDConstants(0.075, 0, 0))
+            .build();
+
+    public static final SwerveMotorConfig BACK_LEFT_ANGLE_CONFIG = new SwerveMotorConfig.Builder()
+            .motor(new TalonMotorController(CANConstants.SWERVE_BACK_LEFT_ANGLE, TalonModel.TalonFX))
+            .invert(false)
+            .currentLimit(25)
+            .pid(new PIDConstants(0.25, 0, 0))
+            .build();
+
     public static final Translation2d BACK_LEFT_MODULE_TRANSLATION = new Translation2d(
         -0.3175,
         0.2413
     );
 
-    public static final SwerveMotorConfig BACK_RIGHT_DRIVE_CONFIG = new SwerveMotorConfig(
-        new TalonMotorController(CANConstants.SWERVE_BACK_RIGHT_DRIVE, TalonModel.TalonFX),
-        false, 
-        35, 
-        new PIDConstants(0.05, 0, 0)
-    );
-    public static final SwerveMotorConfig BACK_RIGHT_ANGLE_CONFIG = new SwerveMotorConfig(
-        new TalonMotorController(CANConstants.SWERVE_BACK_RIGHT_ANGLE, TalonModel.TalonFX),
-        false, 
-        25, 
-        new PIDConstants(0.3, 0, 0)
-    );
+    public static final SwerveMotorConfig BACK_RIGHT_DRIVE_CONFIG = new SwerveMotorConfig.Builder()
+            .motor(new TalonMotorController(CANConstants.SWERVE_BACK_RIGHT_DRIVE, TalonModel.TalonFX))
+            .invert(false)
+            .currentLimit(35)
+            .pid(new PIDConstants(0.05, 0, 0))
+            .build();
+
+    public static final SwerveMotorConfig BACK_RIGHT_ANGLE_CONFIG = new SwerveMotorConfig.Builder()
+            .motor(new TalonMotorController(CANConstants.SWERVE_BACK_RIGHT_ANGLE, TalonModel.TalonFX))
+            .invert(false)
+            .currentLimit(25)
+            .pid(new PIDConstants(0.3, 0, 0))
+            .build();
+
     public static final Translation2d BACK_RIGHT_MODULE_TRANSLATION = new Translation2d(
         -0.3175,
         -0.2413

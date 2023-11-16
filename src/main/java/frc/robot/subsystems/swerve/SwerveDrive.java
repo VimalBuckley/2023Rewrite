@@ -22,12 +22,20 @@ import org.littletonrobotics.junction.Logger;
 
 public class SwerveDrive extends SubsystemBase implements Loggable {
 	private static SwerveDrive instance;
+
+	public static synchronized SwerveDrive getInstance() {
+		if (instance == null)
+			instance = new SwerveDrive();
+		return instance;
+	}
+
 	private NavX gyro;
 	private Vision vision;
 	private SwerveModule[] modules;
 	private SwerveDriveKinematics kinematics;
 	private SwerveDriveOdometry odometry;
 	private SwerveDrivePoseEstimator poseEstimator;
+
 	private PIDController anglePID;
 
 	private SwerveDrive() {
@@ -74,32 +82,20 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		);
 	}
 
-	public static synchronized SwerveDrive getInstance() {
-		if (instance == null) instance = new SwerveDrive();
-		return instance;
-	}
-
 	@Override
 	public void periodic() {
-		odometry.update(gyro.getUnwrappedAngle(), getModulePositions());
-		poseEstimator.update(gyro.getUnwrappedAngle(), getModulePositions());
-		if (vision.seesTag()) {
+		Rotation2d gyroAngle = gyro.getUnwrappedAngle();
+		SwerveModulePosition[] modulePositions = getModulePositions();
+		odometry.update(gyroAngle, modulePositions);
+		poseEstimator.update(gyroAngle, modulePositions);
+		// No need to check if tag seen because that is accounted for by robot pose
+		// being present.
+		// If tag is not seen, then the robot pose will be the same as the odometry
+		// pose.
+		if (vision.getRobotPose().isPresent())
 			poseEstimator.addVisionMeasurement(
-				vision.getRobotPose().orElse(getEstimatorPose()),
-				Timer.getFPGATimestamp()
-			);
-		}
-	}
-
-	private double calcRotationalVelocity(Rotation2d targetRotation) {
-		double rotationalVelocity = anglePID.calculate(
-			getRobotAngle().getRadians(), 
-			targetRotation.getRadians()
-		);
-		if (anglePID.atSetpoint()) {
-			rotationalVelocity = 0;
-		}
-		return rotationalVelocity; 
+					vision.getRobotPose().get(),
+					Timer.getFPGATimestamp());
 	}
 
 	public void driveAngleCentric(
@@ -108,12 +104,11 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		Rotation2d targetRotation
 	) {
 		driveRobotCentric(
-			ChassisSpeeds.fromFieldRelativeSpeeds(
-				forwardVelocity,
-				sidewaysVelocity,
-				calcRotationalVelocity(targetRotation),
-				getRobotAngle()
-			)
+				ChassisSpeeds.fromFieldRelativeSpeeds(
+						forwardVelocity,
+						sidewaysVelocity,
+						calculateRotationalVelocityToTarget(targetRotation),
+						getRobotAngle())
 		);
 	}
 
@@ -131,8 +126,8 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 					getRobotAngle()
 				).vxMetersPerSecond, 
 				vision.getGamePieceHorizontalOffset().orElse(
-					new Rotation2d()).getDegrees() / 10, 
-				calcRotationalVelocity(aligningAngle)
+								new Rotation2d()).getDegrees() / 10, // Arbitrary scaling factor
+						calculateRotationalVelocityToTarget(aligningAngle)
 			)
 		);
 	}
@@ -148,54 +143,6 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		for (int i = 0; i < modules.length; i++) {
 			modules[i].drive(states[i]);
 		}
-	}
-
-	/**
-	 * Fixes situation where robot drifts in the direction it's rotating in if turning and translating at the same time
-	 * @see https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964
-	 */
-	private ChassisSpeeds discretize(
-		ChassisSpeeds originalChassisSpeeds
-	) {
-		double vx = originalChassisSpeeds.vxMetersPerSecond;
-		double vy = originalChassisSpeeds.vyMetersPerSecond;
-		double omega = originalChassisSpeeds.omegaRadiansPerSecond;
-		double dt = 0.02; // This should be the time these values will be used, so normally just the loop time
-		Pose2d desiredDeltaPose = new Pose2d(
-			vx * dt,
-			vy * dt,
-			new Rotation2d(omega * dt)
-		);
-		Twist2d twist = new Pose2d().log(desiredDeltaPose);
-		return new ChassisSpeeds(
-			twist.dx / dt,
-			twist.dy / dt,
-			twist.dtheta / dt
-		);
-	}
-
-	private Translation2d[] getModuleTranslations() {
-		Translation2d[] translations = new Translation2d[modules.length];
-		for (int i = 0; i < modules.length; i++) {
-			translations[i] = modules[i].getTranslationFromCenter();
-		}
-		return translations;
-	}
-
-	private SwerveModuleState[] getModuleStates() {
-		SwerveModuleState[] states = new SwerveModuleState[modules.length];
-		for (int i = 0; i < modules.length; i++) {
-			states[i] = modules[i].getModuleState();
-		}
-		return states;
-	}
-
-	private SwerveModulePosition[] getModulePositions() {
-		SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
-		for (int i = 0; i < modules.length; i++) {
-			positions[i] = modules[i].getModulePosition();
-		}
-		return positions;
 	}
 
 	public ChassisSpeeds getChassisSpeeds() {
@@ -270,12 +217,68 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 			modules[3].getModuleState().angle.getRadians()
 		);
 		Logger.getInstance().recordOutput("Swerve Odometry", getOdometryPose());
-		Logger.getInstance().recordOutput("Swerve + Vision Odometry", getEstimatorPose());
+		Logger.getInstance().recordOutput("Odometyry + Vision Pose Estimation", getEstimatorPose());
 		Logger.getInstance().recordOutput("Module States", getModuleStates());
 	}
 
 	@Override
 	public String getTableName() {
 		return "Swerve";
+	}
+
+	private double calculateRotationalVelocityToTarget(Rotation2d targetRotation) {
+		if (anglePID.atSetpoint()) {
+			return 0;
+		} else {
+			return anglePID.calculate(getRobotAngle().getRadians(), targetRotation.getRadians());
+		}
+	}
+
+	/**
+	 * Fixes situation where robot drifts in the direction it's rotating in if
+	 * turning and translating at the same time
+	 * 
+	 * @see https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964
+	 */
+	private ChassisSpeeds discretize(
+			ChassisSpeeds originalChassisSpeeds) {
+		double vx = originalChassisSpeeds.vxMetersPerSecond;
+		double vy = originalChassisSpeeds.vyMetersPerSecond;
+		double omega = originalChassisSpeeds.omegaRadiansPerSecond;
+		double dt = 0.02; // This should be the time these values will be used, so normally just the loop
+							// time
+		Pose2d desiredDeltaPose = new Pose2d(
+				vx * dt,
+				vy * dt,
+				new Rotation2d(omega * dt));
+		Twist2d twist = new Pose2d().log(desiredDeltaPose);
+		return new ChassisSpeeds(
+				twist.dx / dt,
+				twist.dy / dt,
+				twist.dtheta / dt);
+	}
+
+	private Translation2d[] getModuleTranslations() {
+		Translation2d[] translations = new Translation2d[modules.length];
+		for (int i = 0; i < modules.length; i++) {
+			translations[i] = modules[i].getTranslationFromCenter();
+		}
+		return translations;
+	}
+
+	private SwerveModuleState[] getModuleStates() {
+		SwerveModuleState[] states = new SwerveModuleState[modules.length];
+		for (int i = 0; i < modules.length; i++) {
+			states[i] = modules[i].getModuleState();
+		}
+		return states;
+	}
+
+	private SwerveModulePosition[] getModulePositions() {
+		SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
+		for (int i = 0; i < modules.length; i++) {
+			positions[i] = modules[i].getModulePosition();
+		}
+		return positions;
 	}
 }

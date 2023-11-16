@@ -176,7 +176,14 @@ public class TeleopDriveCommand extends CommandBase {
 	}
 
 	public void initSendable(SendableBuilder builder) {
-		builder.addStringProperty("Drive Mode", () -> driveMode.name(), null);
-		builder.addDoubleProperty("Target Angle: ", () -> targetAngle.getDegrees(), null);
+		builder.addStringProperty("Drive Mode", driveMode::toString, mode -> {
+			try {
+				// TODO: Probably wont work, can do chooser but no need, thought its nice
+				driveMode = DriveMode.valueOf(mode);
+			} catch (IllegalArgumentException e) {
+				System.out.println("Invalid drive mode: " + mode);
+			}
+		});
+		builder.addDoubleProperty("Target Angle (deg): ", targetAngle::getDegrees, null);
 	}
 }
