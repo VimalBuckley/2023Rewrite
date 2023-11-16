@@ -7,37 +7,32 @@ import org.littletonrobotics.junction.LogTable;
 public class MessagingSystem extends SubsystemBase implements Loggable {
 
 	private static MessagingSystem instance;
-	private String message;
-	private String newestMessage;
+	private StringBuilder messages;
 	private boolean isEnabled = false;
 
 	private MessagingSystem() {
-		message = "MESSAGES APPEAR BELOW";
+		messages = new StringBuilder("MESSAGES APPEAR BELOW");
 	}
 
 	public void addMessage(String message) {
 		if (isEnabled) {
-			newestMessage = message;
-			this.message = this.message + "\n" + newestMessage;
+			messages.append("\n").append(message);
 		}
 	}
 
-	public void enableMessaging(boolean enable) {
+	public void toggleMessaging(boolean enable) {
 		isEnabled = enable;
 	}
 
-	public void enableMessaging() {
-		isEnabled = true;
-	}
-
 	public static synchronized MessagingSystem getInstance() {
-		if (instance == null) instance = new MessagingSystem();
+		if (instance == null)
+			instance = new MessagingSystem();
         return instance;
 	}
 
 	@Override
 	public void logData(LogTable table) {
-		table.put("Message", newestMessage);
+		table.put("Message", messages.toString());
 	}
 
 	@Override
