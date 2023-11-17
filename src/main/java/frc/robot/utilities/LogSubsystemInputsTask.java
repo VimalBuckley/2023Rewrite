@@ -7,7 +7,6 @@ import java.util.TimerTask;
 
 import org.littletonrobotics.junction.Logger;
 
-
 public class LogSubsystemInputsTask extends TimerTask {
 	private LogInputs loggingHelper = LogInputs.getInstance();
 	private Loggable[] loggingTargets = {

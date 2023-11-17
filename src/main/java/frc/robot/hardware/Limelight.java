@@ -79,8 +79,10 @@ public class Limelight {
 		switch(alliance) {
 			case Red:
 				raw = table.getEntry("botpose_wpired").getDoubleArray(new double[6]);
+                break;
 			case Blue:
 				raw = table.getEntry("botpose_wpiblue").getDoubleArray(new double[6]);
+                break;
 			default:
 				break;
 		}

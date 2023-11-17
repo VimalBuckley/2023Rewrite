@@ -5,13 +5,13 @@ import frc.robot.utilities.Loggable;
 import org.littletonrobotics.junction.LogTable;
 
 public class MessagingSystem extends SubsystemBase implements Loggable {
-
 	private static MessagingSystem instance;
 	private StringBuilder messages;
-	private boolean isEnabled = false;
+	private boolean isEnabled;
 
 	private MessagingSystem() {
 		messages = new StringBuilder("MESSAGES APPEAR BELOW");
+        isEnabled = false;
 	}
 
 	public void addMessage(String message) {
@@ -20,7 +20,7 @@ public class MessagingSystem extends SubsystemBase implements Loggable {
 		}
 	}
 
-	public void toggleMessaging(boolean enable) {
+	public void setMessagingState(boolean enable) {
 		isEnabled = enable;
 	}
 

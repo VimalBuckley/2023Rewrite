@@ -47,7 +47,7 @@ public class SparkMaxMotorController extends CANSparkMax implements EncodedMotor
 	}
 
 	@Override
-	public EncodedMotorController configureCurrentLimit(int currentLimit) {
+	public EncodedMotorController setCurrentLimit(int currentLimit) {
 		setSmartCurrentLimit(currentLimit);
 		return this;
 	}
@@ -95,11 +95,11 @@ public class SparkMaxMotorController extends CANSparkMax implements EncodedMotor
 
 	@Override
 	public EncodedMotorController setBrakeOnIdle(boolean shouldBreak) {
-		if (shouldBreak) {
-			setIdleMode(IdleMode.kBrake);
-		} else {
-			setIdleMode(IdleMode.kCoast);
-		}
+        setIdleMode(
+          shouldBreak
+          ? IdleMode.kBrake
+          : IdleMode.kCoast  
+        );
 		return this;
 	}
 

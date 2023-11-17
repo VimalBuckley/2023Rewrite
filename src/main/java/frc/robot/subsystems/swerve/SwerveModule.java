@@ -1,8 +1,5 @@
 package frc.robot.subsystems.swerve;
 
-import com.pathplanner.lib.auto.PIDConstants;
-
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -15,22 +12,12 @@ public class SwerveModule {
 	private Translation2d translationFromCenter;
 
 	public SwerveModule(
-		SwerveMotorConfig driveConfig,
-		SwerveMotorConfig angleConfig,
+		EncodedMotorController driveMotor,
+		EncodedMotorController angleMotor,
 		Translation2d translationToCenter
 	) {
-		driveMotor = driveConfig.motor;
-		angleMotor = angleConfig.motor;
-
-		driveMotor
-			.setInversion(driveConfig.invert)
-			.configureCurrentLimit(driveConfig.currentLimit)
-			.setPID(driveConfig.pid);
-		angleMotor
-			.setInversion(angleConfig.invert)
-			.configureCurrentLimit(angleConfig.currentLimit)
-			.setPID(angleConfig.pid);
-		
+		this.driveMotor = driveMotor;
+		this.angleMotor = angleMotor;
 		this.translationFromCenter = translationToCenter;
 	}
 
@@ -40,8 +27,8 @@ public class SwerveModule {
 			getModuleState().angle
 		);
 		setModuleVelocity(
-				targetState.speedMetersPerSecond * // This is scales the velocity by how off the wheel is from the
-													// target angle.
+			targetState.speedMetersPerSecond * 
+            // Scale velocity by how far wheel is from target
 			Math.abs(targetState.angle.minus(getModuleState().angle).getCos())
 		);
 		setModuleAngle(targetState.angle.getRadians());
@@ -82,37 +69,12 @@ public class SwerveModule {
 
 	public void setModuleVelocity(double targetVelocityMetersPerSecond) {
 		driveMotor.setAngularVelocity(
-			targetVelocityMetersPerSecond *
-			2 /
+			targetVelocityMetersPerSecond * 2 /
 			(SwerveConstants.DRIVE_RATIO * SwerveConstants.WHEEL_DIAMETER_METERS)
 		);
 	}
 
-	/**
-	 * Adjusts the target angle and speed based on the current angle of the swerve
-	 * module.
-	 * If the difference between the target angle and current angle is greater than
-	 * 90 degrees,
-	 * the target speed is negated and the target angle is adjusted by 180 degrees.
-	 *
-	 * @param targetAngle  the desired angle for the swerve module to reach
-	 * @param targetSpeed  the desired speed for the swerve module to reach
-	 * @param currentAngle the current angle of the swerve module
-	 * @return a Pair object containing the adjusted target speed and angle
-	 */
-	private Pair<Double, Double> adjustTargetAngleAndSpeed(
-			double targetAngle,
-			double targetSpeed,
-			double currentAngle) {
-		double delta = targetAngle - currentAngle;
-		if (Math.abs(delta) > 90) {
-			targetSpeed = -targetSpeed;
-			targetAngle = delta > 90 ? (targetAngle -= 180) : (targetAngle += 180);
-		}
-		return new Pair<>(targetSpeed, targetAngle);
-	}
-
-	/**
+    /**
 	 * Minimize the change in heading the desired swerve module state would require
 	 * by potentially reversing the direction the wheel spins. Customized from
 	 * WPILib's version to include placing in appropriate scope for CTRE onboard
@@ -128,18 +90,36 @@ public class SwerveModule {
 	private SwerveModuleState optimizeTalon(SwerveModuleState desiredState, Rotation2d currentAngle) {
 		double targetAngle = placeInAppropriate0To360Scope(currentAngle.getDegrees(), desiredState.angle.getDegrees());
 		double targetSpeed = desiredState.speedMetersPerSecond;
-		Pair<Double, Double> adjustedValues = adjustTargetAngleAndSpeed(targetAngle, targetSpeed,
-				currentAngle.getDegrees());
-		return new SwerveModuleState(
-				adjustedValues.getFirst(),
-				Rotation2d.fromDegrees(adjustedValues.getSecond()));
+		return adjustTargetAngleAndSpeed(targetAngle, targetSpeed, currentAngle.getDegrees());
+	}
+
+	/**
+	 * Adjusts the target angle and speed based on the current angle of the swerve
+	 * module.
+	 * If the difference between the target angle and current angle is greater than
+	 * 90 degrees,
+	 * the target speed is negated and the target angle is adjusted by 180 degrees.
+	 *
+	 * @param targetAngle  the desired angle for the swerve module to reach
+	 * @param targetSpeed  the desired speed for the swerve module to reach
+	 * @param currentAngle the current angle of the swerve module
+	 * @return Optimized target module state
+	 */
+	private SwerveModuleState adjustTargetAngleAndSpeed(
+			double targetAngle,
+			double targetSpeed,
+			double currentAngle) {
+		double delta = targetAngle - currentAngle;
+		if (Math.abs(delta) > 90) {
+			targetSpeed = -targetSpeed;
+			targetAngle = delta > 90 ? (targetAngle -= 180) : (targetAngle += 180);
+		}
+		return new SwerveModuleState(targetSpeed, Rotation2d.fromDegrees(targetAngle));
 	}
 
 	/**
 	 * Places the given angle in the appropriate 0 to 360 degree scope based on the
 	 * reference angle.
-	 * 
-	 * TODO: Test if this works :D
 	 * 
 	 * @param scopeReference the reference angle to place the new angle in scope of
 	 * @param newAngle       the angle to place in the scope
@@ -153,50 +133,5 @@ public class SwerveModule {
 			delta += 360; // correct negative values
 		delta -= 180; // shift range back to [-180, 180]
 		return scopeReference + delta;
-	}
-
-	public static class SwerveMotorConfig {
-		public EncodedMotorController motor;
-		public boolean invert;
-		public int currentLimit;
-		public PIDConstants pid;
-
-		private SwerveMotorConfig(Builder builder) {
-			this.motor = builder.motor;
-			this.invert = builder.invert;
-			this.currentLimit = builder.currentLimit;
-			this.pid = builder.pid;
-		}
-
-		public static class Builder {
-			private EncodedMotorController motor;
-			private boolean invert = false;
-			private int currentLimit = 25;
-			private PIDConstants pid = new PIDConstants(0, 0, 0);
-
-			public Builder motor(EncodedMotorController motor) {
-				this.motor = motor;
-				return this;
-			}
-
-			public Builder invert(boolean invert) {
-				this.invert = invert;
-				return this;
-			}
-
-			public Builder currentLimit(int currentLimit) {
-				this.currentLimit = currentLimit;
-				return this;
-			}
-
-			public Builder pid(PIDConstants pid) {
-				this.pid = pid;
-				return this;
-			}
-
-			public SwerveMotorConfig build() {
-				return new SwerveMotorConfig(this);
-			}
-		}
 	}
 }

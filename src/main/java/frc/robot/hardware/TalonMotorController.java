@@ -16,19 +16,17 @@ public class TalonMotorController implements EncodedMotorController{
         switch (model) {
             case TalonFX:
                 innerTalon = new TalonFX(deviceID);
+                innerTalon.config_IntegralZone(0, 0);
+                innerTalon.configMotionCruiseVelocity(10000);
+                innerTalon.configMotionAcceleration(10000);
+                innerTalon.configAllowableClosedloopError(0, 0);
+                innerTalon.configClearPositionOnQuadIdx(true, 10);
                 break;
             case TalonSRX:
                 innerTalon = new TalonSRX(deviceID);
                 break;
         }
         this.model = model;
-        if (model == TalonModel.TalonFX) {
-            innerTalon.config_IntegralZone(0, 0);
-            innerTalon.configMotionCruiseVelocity(10000);
-            innerTalon.configMotionAcceleration(10000);
-            innerTalon.configAllowableClosedloopError(0, 0);
-            innerTalon.configClearPositionOnQuadIdx(true, 10);
-        }
     }
 
     public static enum TalonModel {
@@ -37,6 +35,7 @@ public class TalonMotorController implements EncodedMotorController{
         
         public String name;
         public double ticksPerRadian;
+
         private TalonModel(String name, double ticksPerRadian) {
             this.name = name;
             this.ticksPerRadian = ticksPerRadian;
@@ -78,14 +77,14 @@ public class TalonMotorController implements EncodedMotorController{
     }
 
     @Override
-    public EncodedMotorController configureCurrentLimit(int currentLimit) {
+    public EncodedMotorController setCurrentLimit(int currentLimit) {
         innerTalon.configSupplyCurrentLimit(
             new SupplyCurrentLimitConfiguration(
-                    true, 
-                    currentLimit, 
-                    currentLimit + 1, 
-                    0.1
-                ), 
+                true, 
+                currentLimit, 
+                currentLimit + 1, 
+                0.1
+            ), 
             50
         );
         return this;
@@ -133,11 +132,11 @@ public class TalonMotorController implements EncodedMotorController{
 
     @Override
     public EncodedMotorController setBrakeOnIdle(boolean shouldBreak) {
-        if (shouldBreak) {
-            innerTalon.setNeutralMode(NeutralMode.Brake);
-        } else {
-            innerTalon.setNeutralMode(NeutralMode.Coast);
-        }
+        innerTalon.setNeutralMode(
+            shouldBreak
+            ? NeutralMode.Brake
+            : NeutralMode.Coast
+        );
         return this;
     }
 

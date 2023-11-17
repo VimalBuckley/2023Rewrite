@@ -15,15 +15,14 @@ import java.util.Optional;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 
-
 public class Vision extends SubsystemBase implements Loggable {
 	private static Vision instance;
 	private Limelight aprilTagLimelight;
 	private Limelight gamePieceLimelight;
 
-	private double LIMELIGHT2_HEIGHT_METERS = 0.232;
-	private double CONE_HALF_HEIGHT_METERS = 0.16;
-	private Rotation2d LIMELIGHT_ANGLE = Rotation2d.fromDegrees(-12);
+	private double GAMEPIECE_LIMELIGHT_HEIGHT_METERS = 0.232;
+	private double GAMEPIECE_HALF_HEIGHT_METERS = 0.16;
+	private Rotation2d GAMEPIECE_LIMELIGHT_ANGLE = Rotation2d.fromDegrees(-12);
 
 	private Vision() {
 		aprilTagLimelight = new Limelight("limelight-hehehe");
@@ -50,6 +49,8 @@ public class Vision extends SubsystemBase implements Loggable {
 	@Override
 	public void logData(LogTable table) {
 		table.put("Tag ID", getTagId().orElse(0));
+        table.put("Sees tag", seesTag());
+        table.put("Sees gamepiece", seesGamePiece());
 		Logger.getInstance().recordOutput("Vision Odometry", getRobotPose().orElse(new Pose2d()));
 	}
 
@@ -70,12 +71,16 @@ public class Vision extends SubsystemBase implements Loggable {
 		return aprilTagLimelight.hasValidTargets();
 	}
 
+	public boolean seesGamePiece() {
+		return gamePieceLimelight.hasValidTargets();
+	}
+
 	public Optional<Translation2d> getGamePieceTranslation() {
 		if (!seesGamePiece()) return Optional.empty();
 		double forwardDistance = 
-			(LIMELIGHT2_HEIGHT_METERS - CONE_HALF_HEIGHT_METERS) / 
+			(GAMEPIECE_LIMELIGHT_HEIGHT_METERS - GAMEPIECE_HALF_HEIGHT_METERS) / 
 			Math.tan(
-				LIMELIGHT_ANGLE.plus(
+				GAMEPIECE_LIMELIGHT_ANGLE.plus(
 					getGamePieceVerticalOffset().orElse(new Rotation2d())
 				).getRadians()
 			);
@@ -127,9 +132,5 @@ public class Vision extends SubsystemBase implements Loggable {
 	public Optional<Rotation2d> getGamePieceSkew() {
 		if (!seesGamePiece()) return Optional.empty();
 		return Optional.of(gamePieceLimelight.getSkew());
-	}
-
-	public boolean seesGamePiece() {
-		return gamePieceLimelight.hasValidTargets();
 	}
 }

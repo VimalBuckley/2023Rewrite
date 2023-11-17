@@ -61,7 +61,7 @@ public class RobotContainer {
 	}
 
 	public void autonomousInit() {
-		messaging.toggleMessaging(true);
+		messaging.setMessagingState(true);
 		messaging.addMessage("Auto Started");
 		autoCommand = autonChooser.getSelected();
 		if (autoCommand != null) {
@@ -72,7 +72,7 @@ public class RobotContainer {
 	}
 
 	public void teleopInit() {
-		messaging.toggleMessaging(true);
+		messaging.setMessagingState(true);
 		messaging.addMessage("Teleop Started");
 		if (autoCommand != null) {
 			autoCommand.cancel();

@@ -23,20 +23,12 @@ import org.littletonrobotics.junction.Logger;
 
 public class SwerveDrive extends SubsystemBase implements Loggable {
 	private static SwerveDrive instance;
-
-	public static synchronized SwerveDrive getInstance() {
-		if (instance == null)
-			instance = new SwerveDrive();
-		return instance;
-	}
-
 	private NavX gyro;
 	private Vision vision;
 	private SwerveModule[] modules;
 	private SwerveDriveKinematics kinematics;
 	private SwerveDriveOdometry odometry;
 	private SwerveDrivePoseEstimator poseEstimator;
-
 	private PIDController anglePID;
 
 	private SwerveDrive() {
@@ -46,23 +38,23 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		anglePID.setSetpoint(0);
 		modules = new SwerveModule[] {
 			new SwerveModule(
-				SwerveConstants.FRONT_LEFT_DRIVE_CONFIG,
-				SwerveConstants.FRONT_LEFT_ANGLE_CONFIG,
+				SwerveConstants.FRONT_LEFT_DRIVE_MOTOR,
+				SwerveConstants.FRONT_LEFT_ANGLE_MOTOR,
 				SwerveConstants.FRONT_LEFT_MODULE_TRANSLATION
 			),
 			new SwerveModule(
-				SwerveConstants.FRONT_RIGHT_DRIVE_CONFIG,
-				SwerveConstants.FRONT_RIGHT_ANGLE_CONFIG,
+				SwerveConstants.FRONT_RIGHT_DRIVE_MOTOR,
+				SwerveConstants.FRONT_RIGHT_ANGLE_MOTOR,
 				SwerveConstants.FRONT_RIGHT_MODULE_TRANSLATION
 			),
 			new SwerveModule(
-				SwerveConstants.BACK_LEFT_DRIVE_CONFIG,
-				SwerveConstants.BACK_LEFT_ANGLE_CONFIG,
+				SwerveConstants.BACK_LEFT_DRIVE_MOTOR,
+				SwerveConstants.BACK_LEFT_ANGLE_MOTOR,
 				SwerveConstants.BACK_LEFT_MODULE_TRANSLATION
 			),
 			new SwerveModule(
-				SwerveConstants.BACK_RIGHT_DRIVE_CONFIG,
-				SwerveConstants.BACK_RIGHT_ANGLE_CONFIG,
+				SwerveConstants.BACK_RIGHT_DRIVE_MOTOR,
+				SwerveConstants.BACK_RIGHT_ANGLE_MOTOR,
 				SwerveConstants.BACK_RIGHT_MODULE_TRANSLATION
 			),
 		};
@@ -83,20 +75,24 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		);
 	}
 
+    public static synchronized SwerveDrive getInstance() {
+		if (instance == null)
+			instance = new SwerveDrive();
+		return instance;
+	}
+
 	@Override
 	public void periodic() {
 		Rotation2d gyroAngle = gyro.getUnwrappedAngle();
 		SwerveModulePosition[] modulePositions = getModulePositions();
 		odometry.update(gyroAngle, modulePositions);
 		poseEstimator.update(gyroAngle, modulePositions);
-		// No need to check if tag seen because that is accounted for by robot pose
-		// being present.
-		// If tag is not seen, then the robot pose will be the same as the odometry
-		// pose.
-		if (vision.getRobotPose().isPresent())
+		if (vision.seesTag()) {
 			poseEstimator.addVisionMeasurement(
-					vision.getRobotPose().orElse(getEstimatorPose()),
-					Timer.getFPGATimestamp());
+                vision.getRobotPose().orElse(getEstimatorPose()),
+                Timer.getFPGATimestamp()
+            );
+		}
 	}
 
 	public void driveAngleCentric(
@@ -105,11 +101,12 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		Rotation2d targetRotation
 	) {
 		driveRobotCentric(
-				ChassisSpeeds.fromFieldRelativeSpeeds(
-						forwardVelocity,
-						sidewaysVelocity,
-						calculateRotationalVelocityToTarget(targetRotation),
-						getRobotAngle())
+            ChassisSpeeds.fromFieldRelativeSpeeds(
+                forwardVelocity,
+                sidewaysVelocity,
+                calculateRotationalVelocityToTarget(targetRotation),
+                getRobotAngle()
+            )
 		);
 	}
 
@@ -126,9 +123,10 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 					0, 
 					getRobotAngle()
 				).vxMetersPerSecond, 
-				vision.getGamePieceHorizontalOffset().orElse(
-								new Rotation2d()).getDegrees() / 10, // Arbitrary scaling factor
-						calculateRotationalVelocityToTarget(aligningAngle)
+				vision.getGamePieceHorizontalOffset()
+                    .orElse(new Rotation2d())
+                    .getDegrees() / 10, // Arbitrary scaling factor
+				calculateRotationalVelocityToTarget(aligningAngle)
 			)
 		);
 	}
@@ -139,7 +137,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		);
 		SwerveDriveKinematics.desaturateWheelSpeeds(
 			states,
-			SwerveConstants.MAX_LINEAR_SPEED
+			SwerveConstants.MAX_LINEAR_SPEED_MPS
 		);
 		for (int i = 0; i < modules.length; i++) {
 			modules[i].drive(states[i]);
@@ -242,21 +240,23 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 	 * @see https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964
 	 */
 	private ChassisSpeeds discretize(
-			ChassisSpeeds originalChassisSpeeds) {
+		ChassisSpeeds originalChassisSpeeds
+    ) {
 		double vx = originalChassisSpeeds.vxMetersPerSecond;
 		double vy = originalChassisSpeeds.vyMetersPerSecond;
 		double omega = originalChassisSpeeds.omegaRadiansPerSecond;
-		double dt = 0.02; // This should be the time these values will be used, so normally just the loop
-							// time
+		double dt = 0.02; // This should be the time these values will be used, so normally just the loop time
 		Pose2d desiredDeltaPose = new Pose2d(
-				vx * dt,
-				vy * dt,
-				new Rotation2d(omega * dt));
+            vx * dt,
+            vy * dt,
+            new Rotation2d(omega * dt)
+        );
 		Twist2d twist = new Pose2d().log(desiredDeltaPose);
 		return new ChassisSpeeds(
-				twist.dx / dt,
-				twist.dy / dt,
-				twist.dtheta / dt);
+            twist.dx / dt,
+            twist.dy / dt,
+            twist.dtheta / dt
+        );
 	}
 
 	private Translation2d[] getModuleTranslations() {

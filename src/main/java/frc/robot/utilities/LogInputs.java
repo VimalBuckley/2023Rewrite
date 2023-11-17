@@ -4,7 +4,6 @@ import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 public class LogInputs implements LoggableInputs {
-
 	private static LogInputs instance;
 	private Loggable target;
 

@@ -22,7 +22,7 @@ public interface EncodedMotorController {
 	public double getOutput();
 
 	/** Units are amps */
-	public EncodedMotorController configureCurrentLimit(int currentLimit);
+	public EncodedMotorController setCurrentLimit(int currentLimit);
 
 	public EncodedMotorController setPID(PIDConstants pid);
 
