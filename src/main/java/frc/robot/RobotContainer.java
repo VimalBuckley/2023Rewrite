@@ -44,12 +44,18 @@ public class RobotContainer {
 		Trigger alignToTargetButton = xbox.rightBumper();
 		Trigger slowModeButton = xbox.leftBumper();
 		Trigger cancelationButton = xbox.start();
+		Trigger playButton = xbox.povUp();
+		Trigger previousButton = xbox.povLeft();
+		Trigger nextButton = xbox.povRight();
 
 		switchDriveModeButton.toggleOnTrue(swerveCommand.toggleRobotCentricCommand());
 		resetGyroButton.onTrue(swerveCommand.resetGyroCommand());
 		slowModeButton.whileTrue(swerveCommand.toggleSlowModeCommand());
 		alignToTargetButton.whileTrue(swerveCommand.toggleAlignToAngleCommand());
 		cancelationButton.onTrue(Commands.runOnce(() -> CommandScheduler.getInstance().cancelAll()));
+		playButton.onTrue(swerveCommand.pausePlayCurrentSongCommand());
+		previousButton.onTrue(swerveCommand.playPreviousSongCommand());
+		nextButton.onTrue(swerveCommand.playNextSongCommand());
 	}
 
 

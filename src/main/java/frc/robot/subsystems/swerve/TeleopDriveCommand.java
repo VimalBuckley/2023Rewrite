@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.subsystems.swerve.orchestra.SwerveOrchestra;
 
 /**
  * Drive Command for teleop. Supports 3 modes <p>
@@ -23,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
  */
 public class TeleopDriveCommand extends CommandBase {
 	private SwerveDrive swerve;
+	private SwerveOrchestra orchestra;
 	private CommandXboxController controller;
 	private DriveMode driveMode;
 	private Rotation2d targetAngle;
@@ -34,6 +36,7 @@ public class TeleopDriveCommand extends CommandBase {
 
 	public TeleopDriveCommand(CommandXboxController xboxController) {
 		swerve = SwerveDrive.getInstance();
+		orchestra = SwerveOrchestra.getInstance();
 		controller = xboxController;
 		addRequirements(swerve);
 	}
@@ -139,6 +142,22 @@ public class TeleopDriveCommand extends CommandBase {
             }
         );    
     }
+
+	public Command pausePlayCurrentSongCommand() {
+		return orchestra.isPlaying()
+				? Commands.runOnce(() -> orchestra.shouldPlay(false))
+				: Commands.runOnce(() -> orchestra.shouldPlay(true));
+	}
+
+	public Command playPreviousSongCommand() {
+		return Commands.runOnce(
+				() -> orchestra.loadSelectedSong(-1));
+	}
+
+	public Command playNextSongCommand() {
+		return Commands.runOnce(
+				() -> orchestra.loadSelectedSong(1));
+	}
 
 	public static enum DriveMode {
 		AngleCentric,

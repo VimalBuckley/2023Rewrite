@@ -8,7 +8,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.pathplanner.lib.auto.PIDConstants;
 
-public class TalonMotorController implements EncodedMotorController{
+public class TalonMotorController implements EncodedMotorController {
     private TalonModel model;
     private BaseTalon innerTalon;
 
