@@ -10,8 +10,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.hardware.Limelight;
 import frc.robot.utilities.Loggable;
 
-import java.util.Optional;
-
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.Logger;
 
@@ -29,15 +27,15 @@ public class Vision extends SubsystemBase implements Loggable {
 		gamePieceLimelight = new Limelight("limelight-haha");
 		Shuffleboard.getTab("Display").addDouble(
 			"Horizontal Offset", 
-			() -> getGamePieceHorizontalOffset().orElse(new Rotation2d()).getDegrees()
+			() -> getGamePieceHorizontalOffset(new Rotation2d()).getDegrees()
 		);
 		Shuffleboard.getTab("Display").addDouble(
 			"Forward Distance", 
-			() -> getGamePieceTranslation().orElse(new Translation2d()).getX()
+			() -> getGamePieceTranslation(new Translation2d()).getX()
 		);
 		Shuffleboard.getTab("Display").addDouble(
 			"Sideways Distance",
-			() -> getGamePieceTranslation().orElse(new Translation2d()).getY()
+			() -> getGamePieceTranslation(new Translation2d()).getY()
 		);
 	}
 
@@ -48,10 +46,10 @@ public class Vision extends SubsystemBase implements Loggable {
 
 	@Override
 	public void logData(LogTable table) {
-		table.put("Tag ID", getTagId().orElse(0));
+		table.put("Tag ID", getTagId(0));
         table.put("Sees tag", seesTag());
         table.put("Sees gamepiece", seesGamePiece());
-		Logger.getInstance().recordOutput("Vision Odometry", getRobotPose().orElse(new Pose2d()));
+		Logger.getInstance().recordOutput("Vision Odometry", getRobotPose(new Pose2d()));
 	}
 
 	@Override
@@ -75,62 +73,65 @@ public class Vision extends SubsystemBase implements Loggable {
 		return gamePieceLimelight.hasValidTargets();
 	}
 
-	public Optional<Translation2d> getGamePieceTranslation() {
-		if (!seesGamePiece()) return Optional.empty();
+	public Translation2d getGamePieceTranslation(Translation2d defaultTranslation) {
+		if (!seesGamePiece()) return defaultTranslation;
 		double forwardDistance = 
 			(GAMEPIECE_LIMELIGHT_HEIGHT_METERS - GAMEPIECE_HALF_HEIGHT_METERS) / 
 			Math.tan(
 				GAMEPIECE_LIMELIGHT_ANGLE.plus(
-					getGamePieceVerticalOffset().orElse(new Rotation2d())
+					getGamePieceVerticalOffset(new Rotation2d())
 				).getRadians()
 			);
-		return Optional.of(
-			new Translation2d(
-				forwardDistance,
-				forwardDistance * Math.tan(
-					getGamePieceVerticalOffset().orElse(new Rotation2d())
-					.getRadians()
-				)
-			)	
+		return new Translation2d(
+			forwardDistance,
+			forwardDistance * Math.tan(
+				getGamePieceVerticalOffset(new Rotation2d())
+				.getRadians()
+			)
 		);
 	}
 
-	public Optional<Integer> getTagId() {
-		if (!seesTag()) return Optional.empty();
-		return Optional.of(aprilTagLimelight.getTargetTagId());
+	public int getTagId(int defaultID) {
+		return aprilTagLimelight.getTargetTagId().orElse(defaultID);
 	}
 
-	public Optional<Pose2d> getRobotPose() {
-		return getRobotPose(DriverStation.getAlliance());
+	public Pose2d getRobotPose(Pose2d defaultPose) {
+		return getRobotPose(defaultPose, DriverStation.getAlliance());
 	}
 
-	public Optional<Pose2d> getRobotPose(Alliance poseOrigin) {
-		if (!seesTag()) return Optional.empty();
-		return Optional.of(aprilTagLimelight.getRobotPoseToAlliance(poseOrigin));
+	public Pose2d getRobotPose(Pose2d defaultPose, Alliance poseOrigin) {
+		return aprilTagLimelight
+			.getRobotPoseToAlliance(poseOrigin)
+			.orElse(defaultPose);
 	}
 
-	public Optional<Pose2d> getRelativeTargetPose() {
-		if (!seesTag()) return Optional.empty();
-		return Optional.of(aprilTagLimelight.getTargetPoseToRobot());
+	public Pose2d getRelativeTargetPose(Pose2d defaultPose) {
+		return aprilTagLimelight
+			.getTargetPoseToRobot()
+			.orElse(defaultPose);
 	}
 
-	public Optional<Rotation2d> getGamePieceHorizontalOffset() {
-		if (!seesGamePiece()) return Optional.empty();
-		return Optional.of(gamePieceLimelight.getHorizontalOffsetFromCrosshair());
+	public Rotation2d getGamePieceHorizontalOffset(Rotation2d defaultRotation) {
+		return gamePieceLimelight
+			.getHorizontalOffsetFromCrosshair()
+			.orElse(defaultRotation);
 	}
 
-	public Optional<Rotation2d> getGamePieceVerticalOffset() {
-		if (!seesGamePiece()) return Optional.empty();
-		return Optional.of(gamePieceLimelight.getVerticalOffsetFromCrosshair());
+	public Rotation2d getGamePieceVerticalOffset(Rotation2d defaultRotation) {
+		return gamePieceLimelight
+			.getVerticalOffsetFromCrosshair()
+			.orElse(defaultRotation);
 	}
 
-	public Optional<Double> getGamePieceTakenArea() {
-		if (!seesGamePiece()) return Optional.empty();
-		return Optional.of(gamePieceLimelight.getTargetArea());
+	public double getGamePieceTakenArea(double defaultArea) {
+		return gamePieceLimelight
+			.getTargetArea()
+			.orElse(defaultArea);
 	}
 
-	public Optional<Rotation2d> getGamePieceSkew() {
-		if (!seesGamePiece()) return Optional.empty();
-		return Optional.of(gamePieceLimelight.getSkew());
+	public Rotation2d getGamePieceSkew(Rotation2d defaultSkew) {
+		return gamePieceLimelight
+			.getSkew()
+			.orElse(defaultSkew);
 	}
 }

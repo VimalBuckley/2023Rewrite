@@ -65,13 +65,13 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 			kinematics,
 			gyro.getUnwrappedAngle(),
 			getModulePositions(),
-			vision.getRobotPose().orElse(new Pose2d())
+			vision.getRobotPose(new Pose2d())
 		);
 		poseEstimator = new SwerveDrivePoseEstimator(
 			kinematics,
 			gyro.getUnwrappedAngle(),
 			getModulePositions(),
-			vision.getRobotPose().orElse(new Pose2d())
+			vision.getRobotPose(new Pose2d())
 		);
 	}
 
@@ -89,7 +89,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 		poseEstimator.update(gyroAngle, modulePositions);
 		if (vision.seesTag()) {
 			poseEstimator.addVisionMeasurement(
-                vision.getRobotPose().orElse(getEstimatorPose()),
+                vision.getRobotPose(getEstimatorPose()),
                 Timer.getFPGATimestamp()
             );
 		}
@@ -123,8 +123,7 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 					0, 
 					getRobotAngle()
 				).vxMetersPerSecond, 
-				vision.getGamePieceHorizontalOffset()
-                    .orElse(new Rotation2d())
+				vision.getGamePieceHorizontalOffset(new Rotation2d())
                     .getDegrees() / 10, // Arbitrary scaling factor
 				calculateRotationalVelocityToTarget(aligningAngle)
 			)
