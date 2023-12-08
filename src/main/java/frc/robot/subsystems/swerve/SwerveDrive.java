@@ -225,11 +225,14 @@ public class SwerveDrive extends SubsystemBase implements Loggable {
 	}
 
 	private double calculateRotationalVelocityToTarget(Rotation2d targetRotation) {
+		double rotationalVelocity = anglePID.calculate(
+			getRobotAngle().getRadians(), 
+			targetRotation.getRadians()
+		);
 		if (anglePID.atSetpoint()) {
-			return 0;
-		} else {
-			return anglePID.calculate(getRobotAngle().getRadians(), targetRotation.getRadians());
+			rotationalVelocity = 0;
 		}
+		return rotationalVelocity; 
 	}
 
 	/**
